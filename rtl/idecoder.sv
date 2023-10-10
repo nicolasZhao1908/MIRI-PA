@@ -1,15 +1,11 @@
-`include "const.svh"
+`include "brisc_pkg.svh"
 
-module idecoder #(
-    parameter ILEN = `ILEN,
-    parameter OPCODE_BITS = `OPCODE_BITS,
-    parameter REG_LEN = `REG_LEN,
-    parameter REG_BITS = $clog2(REG_LEN),
-    parameter PC_EXCEPT = `PC_EXCEPT
+module idecoder import brisc_pkg::*; #(
+    parameter int unsigned REG_BITS = $clog2(REG_LEN)
 ) (
     input logic [ILEN-1:0] instr,
     input logic clk,
-    input instr_type itype,
+    input itype_e i_type,
     output logic [OPCODE_BITS-1:0] opcode,
     output logic [REG_BITS-1:0] rs1,
     output logic [REG_BITS-1:0] rs2,
@@ -30,7 +26,7 @@ module idecoder #(
 
   always_ff @(posedge clk) begin
     opcode <= instr[OPCODE_BITS-1:0];
-    case (itype)
+    case (i_type)
       R: begin
         rs1 <= instr[19:15];
         rs2 <= instr[24:20];
