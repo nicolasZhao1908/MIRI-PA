@@ -1,6 +1,6 @@
 `include "const.svh"
 
-module control#(
+module control #(
     parameter OPCODE_LW = `OPCODE_LW,
     parameter OPCODE_LB = `OPCODE_LB,
     parameter OPCODE_ADDI = `OPCODE_ADDI,
@@ -14,15 +14,15 @@ module control#(
     parameter NOP = `NOP,
     parameter ILEN = `ILEN,
     parameter OPCODE_BITS = `OPCODE_BITS
-)(
+) (
     input logic [ILEN-1:0] instr,
     output instr_type itype,
-    output logic  is_valid
+    output logic is_valid
 );
 
-logic [OPCODE_BITS-1:0] opcode;
-assign opcode = instr[OPCODE_BITS-1:0];
-always_comb begin
-end
+  logic [OPCODE_BITS-1:0] opcode;
+  assign opcode = instr[OPCODE_BITS-1:0];
+  always_comb begin
+  end
 
 endmodule

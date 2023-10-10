@@ -1,7 +1,7 @@
 `ifndef CONST_SVH
 `define CONST_SVH
 
-`timescale 1ns/1ps
+`timescale 1ns / 1ps
 
 `define PC_BOOT 32'h00001000
 `define PC_EXCEPT 32'h00002000
@@ -40,6 +40,11 @@
 `define CACHE_LINE_LEN 512
 
 
-typedef enum logic [1:0] {R, I, S, B} instr_type;
+typedef enum logic [1:0] {
+  R,
+  I,
+  S,
+  B
+} instr_type;
 
 `endif
