@@ -3,7 +3,9 @@
 */
 `include "brisc_pkg.svh"
 
-module cache import brisc_pkg::*; #(
+module cache
+  import brisc_pkg::*;
+#(
     parameter int unsigned CACHE_LINE_OFFSET_BITS = $clog2(CACHE_LINE_LEN / BYTE_LEN),  // PC[5:0]
     parameter int unsigned WORLD_OFFSET_BITS = $clog2(CACHE_LINE_LEN / BYTE_LEN),  // PC[5:2]
     parameter int unsigned BYTE_OFFSET_BITS = $clog2(ILEN / BYTE_LEN),  // PC[1:0]

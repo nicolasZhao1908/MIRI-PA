@@ -35,9 +35,9 @@ module reg_file
 
   always_ff @(posedge clk, posedge reset) begin
     if (reset) begin
-        for (int unsigned i = 0; i < REG_NUM; i++) begin
-            regs[i] <= 'b0;
-        end
+      for (int unsigned i = 0; i < REG_NUM; i++) begin
+        regs[i] <= 'b0;
+      end
     end else if (enable) begin
       regs[rsd_addr] <= write_data;
     end

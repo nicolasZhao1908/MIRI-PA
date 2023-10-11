@@ -27,7 +27,7 @@ module idecoder
 
   always_comb begin
     opcode = instr[OPCODE_BITS-1:0];
-    case (i_type)
+    unique case (i_type)
       R: begin
         rs1 = instr[19:15];
         rs2 = instr[24:20];

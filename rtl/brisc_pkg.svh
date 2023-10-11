@@ -1,7 +1,7 @@
 `ifndef BRISC_PKG_SVH
 `define BRISC_PKG_SVH
 
-`timescale 1ns/1ps
+`timescale 1ns / 1ps
 
 package brisc_pkg;
 
