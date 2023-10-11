@@ -1,11 +1,9 @@
 #Makefile
 
-# defaults
 SIM ?= verilator
 TOPLEVEL_LANG ?= verilog
 
 VERILOG_SOURCES += $(PWD)/cache.sv
-# use VHDL_SOURCES for VHDL files
 
 # TOPLEVEL is the name of the toplevel module in your Verilog or VHDL file
 TOPLEVEL = cache
