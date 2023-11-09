@@ -21,12 +21,15 @@ module idecoder
     output logic i_valid
 );
 
-  initial begin
-    assign i_valid = 1'b1;
-  end
-
   always_comb begin
     opcode = instr[OPCODE_BITS-1:0];
+    i_valid = 1'b1;
+    i_imm = 0;
+    b_imm = 0;
+    s_imm = 0;
+    rs2 = 0;
+    rd = 0;
+    funct7 = 0;
     unique case (i_type)
       R: begin
         rs1 = instr[19:15];

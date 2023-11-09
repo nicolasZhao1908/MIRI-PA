@@ -14,19 +14,20 @@ module control
   always_comb begin
     is_valid = 1;
     unique case (opcode)
-      opcode_e::OPCODE_LOAD: begin
-         itype =  itype_e::I;
+      OPCODE_LOAD: begin
+        itype = I;
       end
-      opcode_e::OPCODE_OP: begin
-         itype =  itype_e::R;
+      OPCODE_OP: begin
+        itype = R;
       end
-      opcode_e::OPCODE_STORE: begin
-        itype = itype_e::S;
+      OPCODE_STORE: begin
+        itype = S;
       end
-      opcode_e::OPCODE_BRANCH: begin
-        itype = itype_e::B;
+      OPCODE_BRANCH: begin
+        itype = B;
       end
       default: begin
+        itype = I;
         is_valid = 0;
       end
     endcase

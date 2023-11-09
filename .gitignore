@@ -26,6 +26,10 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+sim_build
+__pycache__
+.python-version
+results.xml
 
 # PyInstaller
 #  Usually these files are written by a python script from a template

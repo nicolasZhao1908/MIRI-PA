@@ -4,14 +4,13 @@
 `timescale 1ns / 1ps
 
 package brisc_pkg;
-
   parameter int unsigned ILEN = 32;
   parameter int unsigned REG_LEN = 32;
   parameter int unsigned BYTE_LEN = 8;
   parameter int unsigned WORLD_LEN = 32;
   parameter int unsigned ADDRESS_BITS = 32;
   parameter int unsigned OPCODE_BITS = 7;
-  parameter int unsigned CACHE_LINE_LEN = 512;
+  parameter int unsigned CACHE_LINE_LEN = 128;
 
   parameter logic [REG_LEN-1:0] PC_BOOT = 32'h00001000;
   parameter logic [REG_LEN-1:0] PC_EXCEPT = 32'h00002000;
