@@ -10,7 +10,8 @@ module cache
     parameter int unsigned WORLD_OFFSET_BITS = $clog2(CACHE_LINE_LEN / BYTE_LEN),  // PC[5:2]
     parameter int unsigned BYTE_OFFSET_BITS = $clog2(ILEN / BYTE_LEN),  // PC[1:0]
     parameter int unsigned TAG_BITS = ADDRESS_BITS - CACHE_LINE_OFFSET_BITS,
-    parameter int unsigned ASSOCIATIVITY = 1
+    parameter int unsigned ASSOCIATIVITY = 1,
+    parameter int unsigned N_WAY = 2
 ) (
     input logic clk,
     input logic enable,
@@ -28,6 +29,29 @@ module cache
     output logic [REG_LEN-1:0] out_data
 );
 
+
 endmodule
 
+
+module cache_line(
+    input logic clk,
+    input logic overwrite,
+    input logic in_valid,
+    input [TAG_BITS-1:0] logic in_tag,
+    input [REG_LEN-1:0] logic in_data,
+    output logic out_valid,
+    output [TAG_BITS-1:0] logic out_tag,
+    output [REG_LEN-1:0] logic out_data
+  );
+
+  always_ff @( posedge clk ) begin : writeInChache
+    if (overwrite) begin
+      out_valid <= in_valid;
+      out_tag <= in_tag;
+      out_data <= in_data;
+    end
+  end
+
+
+endmodule
 
