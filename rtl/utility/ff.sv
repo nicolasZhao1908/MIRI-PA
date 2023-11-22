@@ -1,3 +1,6 @@
+`ifndef FF_SV
+`define FF_SV
+
 module ff #(
     parameter WIDTH = 1,
     parameter RESET_VALUE = 0
@@ -50,3 +53,6 @@ module nff #(
     assign out = inp_cable[N];
 
 endmodule
+
+
+`endif

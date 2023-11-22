@@ -1,3 +1,6 @@
+`ifndef COMPARATOR_SV
+`define COMPARATOR_SV
+
 module comparator #(
     parameter WIDTH = 1
 )
@@ -9,3 +12,5 @@ module comparator #(
 
     assign is_equal = & (inp_1 ^ ~inp_2);
 endmodule
+
+`endif

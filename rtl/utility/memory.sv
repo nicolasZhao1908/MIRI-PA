@@ -54,11 +54,13 @@ module memory #(
     assign valid_out = req & ~store;
 
     logic [FILL_DATA_WIDTH:0] delayed_result;
+    logic reset_bus;
 
-    nff #(.N(DATA_TRANSFER_TIME), .WIDTH(FILL_DATA_WIDTH + 1)) long_way_back (clk, 1'b1, 1'b0, {valid_out, lines_out[selected_line]}, delayed_result);
+    nff #(.N(DATA_TRANSFER_TIME), .WIDTH(FILL_DATA_WIDTH + 1)) long_way_back (clk, 1'b1, reset_bus, {valid_out, lines_out[selected_line]}, delayed_result);
 
     assign fill_data = delayed_result[FILL_DATA_WIDTH - 1:0];
     assign response_valid = delayed_result[FILL_DATA_WIDTH];
+    assign reset_bus = delayed_result[FILL_DATA_WIDTH];
 
 endmodule
 

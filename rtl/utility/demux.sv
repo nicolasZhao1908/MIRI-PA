@@ -1,3 +1,6 @@
+`ifndef DEMUX_SV
+`define DEMUX_SV
+
 module demux #(
     parameter CONTROL = 2,
     parameter DATA_WIDTH = 1
@@ -17,3 +20,5 @@ module demux #(
     endgenerate
 
 endmodule
+
+`endif

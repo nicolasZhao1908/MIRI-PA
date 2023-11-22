@@ -1,17 +1,16 @@
 import random
-from tb.simulatedBlocks.cache import Cache
 
 import cocotb
 from cocotb.triggers import Timer
+from tb.simulatedBlocks.memory import Memory
 
-
-@cocotb.test()
+cocotb.test()
 async def test_defined_suit(dut):
     suit = [
-        # getTestLine(1, 0, 0, 0),  # 0
-        # getTestLine(1, 1, 0, 0),
-        # getTestLine(1, 2, 0, 0),
-        # getTestLine(1, 3, 0, 0),  # invalidate Cache
+        getTestLine(1, 0, 0, 0),  # 0
+        getTestLine(1, 1, 0, 0),
+        getTestLine(1, 2, 0, 0),
+        getTestLine(1, 3, 0, 0),  # invalidate Cache
 
         getTestLine(0, 0, 0),  # 4
         getTestLine(1, 0, 5),  # 5
@@ -42,7 +41,6 @@ async def test_defined_suit(dut):
     ]
     await test_cache(dut, suit)
 
-
 @cocotb.test()
 async def test_random_suit(dut):
     suit = [
@@ -53,41 +51,47 @@ async def test_random_suit(dut):
     ]
 
     for _ in range(10000):
-        suit.append(getTestLine(random.randint(0, 1), random.randint(0, 20), random.randint(0, 4096 * 2), random.randint(0, 1)))
+        suit.append(getTestLine(random.randint(0, 1), random.randint(0, 20), random.randint(0, 4096 * 2)))
 
     await test_cache(dut, suit)
 
+async def wait_cycle(dut):
+    dut.clk.value = 0
+    await Timer(1, units="ns")
+    dut.clk.value = 1
+    await Timer(1, units="ns")
 
 async def test_cache(dut, suit):
-    cache = Cache(2)
+    mem = Memory()
     for i in range(len(suit)):
-        dut.read_write.value = suit[i][0]
-        dut.inp.value = suit[i][1]
+        dut.store.value = suit[i][0]
+        dut.addr.value = suit[i][1]
         dut.data_in.value = suit[i][2]
-        dut.valid_in = suit[i][3]
-
-        dut.clk.value = 0
-        await Timer(1, units="ns")
-        dut.clk.value = 1
-        await Timer(1, units="ns")
+        #dut.valid_in = suit[i][3]
 
         print(f"suit: {suit[i]}")
 
-        # print(f"Write in: {dut.read_write.value}")
-        # print(f"Cache Valid out: {dut.valid_from_lines_out.value}")
-        # print(f"Write enebles out: {dut.write_enables_out.value}")
-        # print(f"Write data out: {dut.data_out.value}")
-        # print(f"Input data in: {dut.inp.value}")
-        # print(f"Set data out: {dut.set_out.value}")
-        # print(f"Tag out: {dut.tag_out.value}")
         if suit[i][0] == 1:
-            cache.put(suit[i][1], suit[i][2], suit[i][3])
+            await wait_cycle(dut)
+            print("Waited 1 cycle")
+            if suit[i][3] == 1:
+                mem.store(suit[i][1], suit[i][2])
+
         else:
-            hit, data = cache.read(suit[i][1])
-            assert hit == dut.hit.value, f"Hit malfunctioning: Cycle: {i}. Correct: {hit}, got {dut.hit.value}"
-            if hit:
-                assert data == int(str(dut.data_out.value),
-                                   2), f"Data inconsistent: {int(str(dut.data_out.value), 2)} orig {dut.data_out.value} expected {data} in cycle{i}"
+            real_data = mem.load_ONLY_ONE(suit[i][1])
+
+            rtl_hit = False
+            for wait in range(10):
+                await wait_cycle(dut)
+                print("Waited 1 cycle")
+
+                rtl_hit = dut.hit.value
+                if rtl_hit:
+                    break
+            assert rtl_hit, "Cache hit guaranteed after time!"
+
+            assert real_data == int(str(dut.data_out.value),
+                                   2), f"Data inconsistent: {int(str(dut.data_out.value), 2)} orig {dut.data_out.value} expected {real_data} in cycle{i}"
 
 
 def getTestLine(write, inp, data, valid_in=1):
@@ -98,14 +102,12 @@ def swap_endian(n, width=32):
     b = '{:0{width}b}'.format(n, width=width)
     return int(b[::-1], 2)
 
-
-
-############ MAKE FILES DATA ############
-# VERILOG_SOURCES += $(PWD)/rtl/utility/fully_associative_cache.sv
+# VERILOG_SOURCES += $(PWD)/rtl/cache/dcache.sv
 #
+# #SIM_ARGS = -Wno{MODDUP}
 #
 # # TOPLEVEL is the name of the toplevel module in your Verilog or VHDL file
-# TOPLEVEL = fully_associative_cache
+# TOPLEVEL = dcache_mem_testonly
 #
 # # MODULE is the basename of the Python test file
-# MODULE = tb.test_utility.test_fully_associative_cache
+# MODULE = tb.test_cache.test_dcache
