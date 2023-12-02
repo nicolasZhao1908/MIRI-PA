@@ -1,6 +1,8 @@
 `ifndef FF_SV
 `define FF_SV
 
+`timescale 1ns / 1ps
+
 module ff #(
     parameter WIDTH = 1,
     parameter RESET_VALUE = 0
@@ -33,7 +35,8 @@ module nff #(
 ) (
     input logic clk,
     input logic enable,
-    input logic reset,   // active high synchronous reset
+    input logic reset_1,
+    input logic reset_1_to_N,   // active high synchronous reset
     input logic [WIDTH - 1:0] inp,
     output logic [WIDTH - 1:0] out
 );
@@ -46,12 +49,11 @@ module nff #(
     generate
         for(i = 0; i < N; i++) begin
             ff #(.WIDTH(WIDTH), .RESET_VALUE(RESET_VALUE)) flip_flop
-            (clk, enable, reset, inp_cable[i], inp_cable[i + 1]);
+            (clk, enable, i == 0 ? reset_1 : reset_1_to_N, inp_cable[i], inp_cable[i + 1]);
         end
     endgenerate
 
     assign out = inp_cable[N];
-
 endmodule
 
 

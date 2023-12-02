@@ -1,6 +1,16 @@
 `ifndef DEMUX_SV
 `define DEMUX_SV
 
+module demux_test(
+    input logic [1 - 1:0] inp,
+    input logic [7 - 1:0] control,
+    output logic [1 - 1:0] out [128]
+);
+
+    demux #(.CONTROL(7)) dm (inp, control, out);
+endmodule
+
+
 module demux #(
     parameter CONTROL = 2,
     parameter DATA_WIDTH = 1

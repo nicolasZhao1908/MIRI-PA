@@ -1,16 +1,16 @@
 import random
 
-from bRISC.tb.simulatedBlocks.memory import Memory
+from tb.simulatedBlocks.memory import Memory
 from math import ceil
 
 import cocotb
 from cocotb.triggers import Timer
 
-LD = "LD"
-ST = "ST"
+LD = 0
+ST = 1
 
 
-@cocotb.test()
+#@cocotb.test()
 async def test_defined_suit(dut):
     suit = [
         [ST, 0, 5],
@@ -25,12 +25,13 @@ async def test_random_suit(dut):
 
     for i in range(128):
         suit.append([ST, i, 0])
+    # suit = [[1, 15, 8106], [-3, 34, 5765], [1, 8, 3528], [-1, 41, 701], [0, 18, 1785], [-2, 1, 1162], [0, 38, 238], [1, 21, 4423], [1, 29, 5010], [1, 29, 1645], [1, 24, 8128], [0, 23, 3970]]
 
     for _ in range(10000):
         if random.randint(0, 1) == 0:
-            suit.append([LD, random.randint(0, 127)])
+            suit.append([LD, random.randint(0, 10)])
         else:
-            suit.append([ST, random.randint(0, 127), random.randint(0, 10000)])
+            suit.append([ST, random.randint(0, 10), random.randint(0, 10000)])
 
     await test_suit(dut, suit)
 
@@ -39,16 +40,28 @@ async def test_suit(dut, suit):
     mem = Memory()
     for i in range(len(suit)):
 
-        dut.req.value = 1
-        dut.store.value = suit[i][0] == ST
+        dut.req.value = suit[i][0] >= 0
+        dut.store.value = suit[i][0] == ST if suit[i][0] >= 0 else 0
         dut.address.value = suit[i][1]
         dut.evict_data.value = 15 if len(suit[i]) == 2 else suit[i][2]
 
-        for _ in range(5):
+        print(f"Suit: {suit[i]} [{i}]")
+
+        if suit[i][0] == ST or suit[i][0] < 0:
             dut.clk.value = 0
             await Timer(1, units="ns")
             dut.clk.value = 1
             await Timer(1, units="ns")
+        else:
+            for _ in range(5):
+                dut.clk.value = 0
+                await Timer(1, units="ns")
+                dut.clk.value = 1
+                await Timer(1, units="ns")
+
+                # print("-----------------------")
+                # for x in range(6):
+                #     print(f"Cables[{x}]: {dut.cabels[x]}")
 
         if suit[i][0] == ST:
             mem.store(suit[i][1], suit[i][2])
@@ -57,6 +70,11 @@ async def test_suit(dut, suit):
             assert dut.response_valid.value == 1, "response should be rdy!"
             memres = mem.load_bin_str(suit[i][1])
             assert str(dut.fill_data.value) == memres, f"Loaded data off: \n{dut.fill_data.value} \n{memres} [REAL]"
+
+            dut.clk.value = 0
+            await Timer(1, units="ns")
+            dut.clk.value = 1
+            await Timer(1, units="ns")
         else:
             assert dut.response_valid.value == 0, "there should be no valid response!"
 
