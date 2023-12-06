@@ -28,30 +28,5 @@ module cache
     output logic [TAG_BITS-1:0] p_address,
     output logic [REG_LEN-1:0] out_data
 );
-
-
-endmodule
-
-
-module cache_line(
-    input logic clk,
-    input logic overwrite,
-    input logic in_valid,
-    input [TAG_BITS-1:0] logic in_tag,
-    input [REG_LEN-1:0] logic in_data,
-    output logic out_valid,
-    output [TAG_BITS-1:0] logic out_tag,
-    output [REG_LEN-1:0] logic out_data
-  );
-
-  always_ff @( posedge clk ) begin : writeInChache
-    if (overwrite) begin
-      out_valid <= in_valid;
-      out_tag <= in_tag;
-      out_data <= in_data;
-    end
-  end
-
-
 endmodule
 

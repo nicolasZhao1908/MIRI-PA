@@ -2,15 +2,15 @@
 `define COMPARATOR_SV
 
 module comparator #(
-    parameter WIDTH = 1
+    parameter integer WIDTH = 1
 )
 (
-    input logic [WIDTH - 1:0] inp_1,
-    input logic [WIDTH - 1:0] inp_2,
+    input logic [WIDTH - 1:0] in_1,
+    input logic [WIDTH - 1:0] in_2,
     output logic is_equal
 );
 
-    assign is_equal = & (inp_1 ^ ~inp_2);
+    assign is_equal = & (in_1 ^ ~in_2);
 endmodule
 
 `endif

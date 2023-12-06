@@ -1,11 +1,9 @@
 `include "utility/ff.sv"
 
 module cache_line #(
-    parameter TAG_WIDTH = 30,
-    parameter DATA_WIDTH = 32
-)
-
-(
+    parameter integer TAG_WIDTH  = 30,
+    parameter integer DATA_WIDTH = 32
+) (
     input logic clk,
     input logic write,
     input logic valid_in,
@@ -16,8 +14,30 @@ module cache_line #(
     output logic [DATA_WIDTH -1:0] data_out
 );
 
-    ff valid (.clk(clk), .enable(write), .inp(valid_in), .out(valid_out), .reset());
-    ff #(.WIDTH(TAG_WIDTH))  tag (.clk(clk), .enable(write), .inp(tag_in), .out(tag_out), .reset());
-    ff #(.WIDTH(DATA_WIDTH)) data (.clk(clk), .enable(write), .inp(data_in), .out(data_out), .reset());
+  ff valid (
+      .clk(clk),
+      .enable(write),
+      .in(valid_in),
+      .out(valid_out),
+      .reset()
+  );
+  ff #(
+      .WIDTH(TAG_WIDTH)
+  ) tag (
+      .clk(clk),
+      .enable(write),
+      .in(tag_in),
+      .out(tag_out),
+      .reset()
+  );
+  ff #(
+      .WIDTH(DATA_WIDTH)
+  ) data (
+      .clk(clk),
+      .enable(write),
+      .in(data_in),
+      .out(data_out),
+      .reset()
+  );
 
 endmodule
