@@ -3,11 +3,11 @@
 `include "utility/comparator"
 
 module memory_v2BROKEN #(
-    parameter integer FILL_DATA_WIDTH = 128,
-    parameter integer SPACES = 128,
-    parameter integer ADDRESS_WIDTH = 32,
-    parameter integer STORE_DATA_WIDTH = 32,
-    parameter integer DATA_TRANSFER_TIME = 5
+    parameter int FILL_DATA_WIDTH = 128,
+    parameter int SPACES = 128,
+    parameter int ADDRESS_WIDTH = 32,
+    parameter int STORE_DATA_WIDTH = 32,
+    parameter int DATA_TRANSFER_TIME = 5
 
 ) (
     input logic clk,
@@ -18,7 +18,7 @@ module memory_v2BROKEN #(
     output logic [FILL_DATA_WIDTH-1:0] fill_data,
     output logic response_valid
 );
-  localparam integer DMX_CONTROL_SIZE = $clog2(SPACES);
+  localparam int DMX_CONTROL_SIZE = $clog2(SPACES);
 
 
   logic enables[SPACES];
@@ -28,7 +28,7 @@ module memory_v2BROKEN #(
   demux #(
       .CONTROL(DMX_CONTROL_SIZE)
   ) enable_dmx (
-      .in(req & store),
+      .inp(req & store),
       .ctrl(address[DMX_CONTROL_SIZE-1:0]),
       .out(enables)
   );
@@ -42,14 +42,14 @@ module memory_v2BROKEN #(
           .clk(clk),
           .enable(enables[i]),
           .reset(1'b0),
-          .in(evict_data),
+          .inp(evict_data),
           .out(data_out_raw[i])
       );
     end
   endgenerate
 
-  localparam integer FF_PER_LINE = FILL_DATA_WIDTH / STORE_DATA_WIDTH;
-  localparam integer LINES = SPACES / FF_PER_LINE;
+  localparam int FF_PER_LINE = FILL_DATA_WIDTH / STORE_DATA_WIDTH;
+  localparam int LINES = SPACES / FF_PER_LINE;
 
   logic [FILL_DATA_WIDTH-1:0] data_out_lines[LINES];
 
@@ -80,7 +80,7 @@ module memory_v2BROKEN #(
       .enable(1'b1),
       .reset_1(reset_bus_1),
       .reset_1_to_N(reset_bus_1_to_n),
-      .in({(~store & req), data_out_lines[address[DMX_CONTROL_SIZE-$clog2(FF_PER_LINE)-1:0]]}),
+      .inp({(~store & req), data_out_lines[address[DMX_CONTROL_SIZE-$clog2(FF_PER_LINE)-1:0]]}),
       .out(delayed_result)
       //cables  TODO: number arguments does not match?
   );
@@ -94,11 +94,11 @@ module memory_v2BROKEN #(
 endmodule
 
 module memory #(
-    parameter integer FILL_DATA_WIDTH = 128,
-    parameter integer SPACES = 128,
-    parameter integer ADDRESS_WIDTH = 32,
-    parameter integer STORE_DATA_WIDTH = 32,
-    parameter integer DATA_TRANSFER_TIME = 5
+    parameter int FILL_DATA_WIDTH = 128,
+    parameter int SPACES = 128,
+    parameter int ADDRESS_WIDTH = 32,
+    parameter int STORE_DATA_WIDTH = 32,
+    parameter int DATA_TRANSFER_TIME = 5
 
 ) (
     input logic clk,
@@ -120,15 +120,15 @@ module memory #(
 );
   //TODO NO RESET DEFINED! reset
 
-  localparam integer CONTROL_BITS_FOR_FF_SELECTION = $clog2(SPACES);
+  localparam int CONTROL_BITS_FOR_FF_SELECTION = $clog2(SPACES);
 
   logic [0:0] enables[SPACES];
   logic [STORE_DATA_WIDTH-1:0] data_out[SPACES];
 
   demux #(
-      .CTRL(CONTROL_BITS_FOR_FF_:weSELECTION)
+      .CTRL(CONTROL_BITS_FOR_FF_SELECTION)
   ) enable_demux (
-      .in(store & req),
+      .inp(store & req),
       .ctrl(address[CONTROL_BITS_FOR_FF_SELECTION-1:0]),
       .out(enables)
   );
@@ -142,15 +142,15 @@ module memory #(
           .clk(clk),
           .enable(enables[i]),
           .reset(1'b0),
-          .in(evict_data),
+          .inp(evict_data),
           .out(data_out[i])
       );
       //DEBUG assign enables_o[i] = enables[i][0:0];
     end
   endgenerate
 
-  localparam integer FF_PER_LINE = FILL_DATA_WIDTH / STORE_DATA_WIDTH;
-  localparam integer LINES = SPACES / FF_PER_LINE;
+  localparam int FF_PER_LINE = FILL_DATA_WIDTH / STORE_DATA_WIDTH;
+  localparam int LINES = SPACES / FF_PER_LINE;
 
   logic [FILL_DATA_WIDTH-1:0] lines_out[LINES];
   logic [$clog2(LINES) - 1:0] selected_line;
@@ -180,7 +180,7 @@ module memory #(
       .enable(1'b1),
       .reset_1(reset_bus_1),
       .reset_1_to_N(reset_bus_1_to_n),
-      .in({valid_out, lines_out[selected_line]}),
+      .inp({valid_out, lines_out[selected_line]}),
       .out(delayed_result)
   );
 

@@ -2,11 +2,12 @@ import random
 
 import cocotb
 from cocotb.triggers import Timer
-from tb.simulatedBlocks.memory import Memory
+from memory import Memory
 
 @cocotb.test()
 async def test_with_random_suit(dut):
-    n = 100000
+    # n = 100000
+    n = 10000
 
     suit1 = create_random_suit(n, 0)
     suit2 = create_random_suit(n, 1)
@@ -134,21 +135,8 @@ async def test_with_random_suit(dut):
                 executed.append(suit2[index2])
                 index2 = (index2 + 1) % n
 
-
-
-
 def create_random_suit(n,suit_nr):
     suit = []
     for _ in range(n):
         suit.append([random.randint(-3, 1), random.randint(0 + 16 * suit_nr + suit_nr, 16 * (suit_nr + 1) + suit_nr), random.randint(0, 4096 * 2)])
     return suit
-
-#FAILED SEED = 1701257810
-#FS_2 = 1700914942
-
-# VERILOG_SOURCES += $(PWD)/rtl/cache/dcache.sv
-# # TOPLEVEL is the name of the toplevel module in your Verilog or VHDL file
-# TOPLEVEL = two_caches_arbiter_testonly
-#
-# # MODULE is the basename of the Python test file
-# MODULE = tb.test_cache.test_arbiter

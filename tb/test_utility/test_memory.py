@@ -1,6 +1,6 @@
 import random
 
-from tb.simulatedBlocks.memory import Memory
+from memory import Memory
 from math import ceil
 
 import cocotb

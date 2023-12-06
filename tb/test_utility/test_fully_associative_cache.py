@@ -1,5 +1,5 @@
 import random
-from tb.simulatedBlocks.cache import Cache
+from cache import Cache
 
 import cocotb
 from cocotb.triggers import Timer

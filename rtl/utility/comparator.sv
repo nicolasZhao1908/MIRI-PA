@@ -2,7 +2,7 @@
 `define COMPARATOR_SV
 
 module comparator #(
-    parameter integer WIDTH = 1
+    parameter int WIDTH = 1
 )
 (
     input logic [WIDTH - 1:0] in_1,

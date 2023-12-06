@@ -1,4 +1,3 @@
-
 class Cache:
     def __init__(self, set_bits):
         self.set_bits = set_bits
@@ -37,5 +36,3 @@ class Cache:
 #             assert hit, "Hit is guaranteed"
 #
 #         return data
-
-

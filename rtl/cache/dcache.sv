@@ -3,10 +3,10 @@
 `include "cache/arbiter.sv"
 
 module two_caches_arbiter_testonly #(
-    parameter integer SET_BIT_WIDTH = 2,
-    parameter integer ADDRESS_WIDTH = 32,
-    parameter integer DATA_WIDTH = 32,
-    parameter integer CACHE_LINE_WIDTH = 128
+    parameter int SET_BIT_WIDTH = 2,
+    parameter int ADDRESS_WIDTH = 32,
+    parameter int DATA_WIDTH = 32,
+    parameter int CACHE_LINE_WIDTH = 128
 ) (
     input logic clk,
     input logic enable_1,
@@ -60,8 +60,8 @@ module two_caches_arbiter_testonly #(
 
   logic req_to_arbiter_1;
   logic req_to_arbiter_2;
-  logic grand_from_arbiter_1;
-  logic grand_from_arbiter_2;
+  logic grant_from_arbiter_1;
+  logic grant_from_arbiter_2;
 
 
   dcache #(
@@ -75,7 +75,7 @@ module two_caches_arbiter_testonly #(
       .store(store_1),
       .addr(addr_1),
       .data_in(data_in_1),
-      .arbiter_grant(grand_from_arbiter_1),
+      .arbiter_grant(grant_from_arbiter_1),
       .fill_data_from_mem(fill_from_mem),
       .fill_data_from_mem_valid(valid_from_mem),
       .req_store_to_mem(req_store_to_mem_1),
@@ -97,7 +97,7 @@ module two_caches_arbiter_testonly #(
       .store(store_2),
       .addr(addr_2),
       .data_in(data_in_2),
-      .arbiter_grant(grand_from_arbiter_2),
+      .arbiter_grant(grant_from_arbiter_2),
       .fill_data_from_mem(fill_from_mem),
       .fill_data_from_mem_valid(valid_from_mem),
       .req_store_to_mem(req_store_to_mem_2),
@@ -118,8 +118,8 @@ module two_caches_arbiter_testonly #(
       .store_to_mem_2(req_store_to_mem_2),
       .addr_to_mem_2(req_addr_to_mem_2),
       .data_to_mem_2(req_store_data_to_mem_2),
-      .grant_1(grand_from_arbiter_1),
-      .grant_2(grand_from_arbiter_2),
+      .grant_1(grant_from_arbiter_1),
+      .grant_2(grant_from_arbiter_2),
       .request_to_mem(req_to_mem_arb),
       .store_to_mem(req_store_to_mem_arb),
       .addr_to_mem(req_addr_to_mem_arb),
@@ -143,7 +143,7 @@ module two_caches_arbiter_testonly #(
   //ADDITIONAL DEBUG STATEMENTS FOR MEM: , enables_out, strAndReq, controlAddr, mem_oi, cabels, data_out_out, evict_data_out
   //DEBUG
   /*
-    assign rg_out = {req_to_arbiter_1, grand_from_arbiter_1, req_to_arbiter_2, grand_from_arbiter_2};
+    assign rg_out = {req_to_arbiter_1, grant_from_arbiter_1, req_to_arbiter_2, grant_from_arbiter_2};
     assign mem_resp = {req_to_mem_arb, valid_from_mem};
     assign arb2mem = req_store_data_to_mem_arb;
     assign mem2arb = fill_from_mem;
@@ -152,10 +152,10 @@ module two_caches_arbiter_testonly #(
 endmodule
 
 module dcache_mem_testonly #(
-    parameter integer SET_BIT_WIDTH = 2,
-    parameter integer ADDRESS_WIDTH = 32,
-    parameter integer DATA_WIDTH = 32,
-    parameter integer CACHE_LINE_WIDTH = 128
+    parameter int SET_BIT_WIDTH = 2,
+    parameter int ADDRESS_WIDTH = 32,
+    parameter int DATA_WIDTH = 32,
+    parameter int CACHE_LINE_WIDTH = 128
 ) (
     input logic clk,
     input logic store,
@@ -174,7 +174,7 @@ module dcache_mem_testonly #(
   logic [ADDRESS_WIDTH-1:0] req_addr_to_mem;
   logic [DATA_WIDTH-1:0] req_store_data_to_mem;
 
-  logic arbiter_grand;
+  logic arbiter_grant;
 
   dcache #(
       .SET_BIT_WIDTH(SET_BIT_WIDTH),
@@ -187,13 +187,13 @@ module dcache_mem_testonly #(
       .store(store),
       .addr(addr),
       .data_in(data_in),
-      .arbiter_grant(arbiter_grand),
+      .arbiter_grant(arbiter_grant),
       .fill_data_from_mem(fill_from_mem),
       .fill_data_from_mem_valid(valid_from_mem),
       .req_store_to_mem(req_store_to_mem),
       .req_addr_to_mem(req_addr_to_mem),
       .req_store_data_to_mem(req_store_data_to_mem),
-      .req_to_arbiter(arbiter_grand),
+      .req_to_arbiter(arbiter_grant),
       .hit(hit),
       .data_out(data_out)
   );
@@ -216,10 +216,10 @@ module dcache_mem_testonly #(
 endmodule
 
 module dcache #(
-    parameter integer SET_BIT_WIDTH = 2,
-    parameter integer ADDRESS_WIDTH = 32,
-    parameter integer DATA_WIDTH = 32,
-    parameter integer CACHE_LINE_WIDTH = 128
+    parameter int SET_BIT_WIDTH = 2,
+    parameter int ADDRESS_WIDTH = 32,
+    parameter int DATA_WIDTH = 32,
+    parameter int CACHE_LINE_WIDTH = 128
 ) (
     input logic clk,
     input logic enable,
@@ -246,7 +246,7 @@ module dcache #(
     output logic [DATA_WIDTH-1:0] data_out
 );
 
-  localparam CACHE_LINE_BIT_OFFSET = $clog2(CACHE_LINE_WIDTH / DATA_WIDTH);
+  localparam int CACHE_LINE_BIT_OFFSET = $clog2(CACHE_LINE_WIDTH / DATA_WIDTH);
 
   logic [ADDRESS_WIDTH - CACHE_LINE_BIT_OFFSET - 1:0] truncated_address_for_cache;
   logic [CACHE_LINE_BIT_OFFSET-1:0] part_in_cacheline;
@@ -267,7 +267,7 @@ module dcache #(
   ) cacheUnit (
       .clk(clk),
       .read_write(write_in_cache_unit),
-      .in(truncated_address_for_cache),
+      .inp(truncated_address_for_cache),
       .data_in(fill_data_from_mem),
       .valid_in(~store),
       .hit(cache_unit_hit),

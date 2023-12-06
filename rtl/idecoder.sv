@@ -2,15 +2,13 @@
 
 module idecoder
   import brisc_pkg::*;
-#(
-    parameter int unsigned REG_BITS = $clog2(REG_LEN)
-) (
+(
     input logic [ILEN-1:0] instr,
     input itype_e i_type,
     output logic [OPCODE_BITS-1:0] opcode,
-    output logic [REG_BITS-1:0] rs1,
-    output logic [REG_BITS-1:0] rs2,
-    output logic [REG_BITS-1:0] rd,
+    output logic [RegBits-1:0] rs1,
+    output logic [RegBits-1:0] rs2,
+    output logic [RegBits-1:0] rd,
     output logic [6:0] funct7,
     output logic [2:0] funct3,
     output logic [11:0] i_imm,
@@ -21,6 +19,7 @@ module idecoder
     output logic i_valid
 );
 
+  localparam int RegBits = $clog2(REG_LEN);
   always_comb begin
     opcode = instr[OPCODE_BITS-1:0];
     i_valid = 1'b1;

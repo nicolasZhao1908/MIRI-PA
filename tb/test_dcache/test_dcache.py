@@ -2,7 +2,7 @@ import random
 
 import cocotb
 from cocotb.triggers import Timer
-from tb.simulatedBlocks.memory import Memory
+from memory import Memory
 
 cocotb.test()
 async def test_defined_suit(dut):

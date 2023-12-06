@@ -3,13 +3,13 @@
 `include "utility/demux.sv"
 
 module fully_associative_cache #(
-    parameter integer SET_BIT_WIDTH = 2,
-    parameter integer INPUT_WIDTH = 32,
-    parameter integer DATA_WIDTH = 32
+    parameter int SET_BIT_WIDTH = 2,
+    parameter int INPUT_WIDTH = 32,
+    parameter int DATA_WIDTH = 32
 ) (
     input logic clk,
     input logic read_write,
-    input logic [INPUT_WIDTH- 1:0] in,
+    input logic [INPUT_WIDTH- 1:0] inp,
     input logic [DATA_WIDTH - 1:0] data_in,
     input logic valid_in,
     output logic hit,
@@ -22,14 +22,14 @@ module fully_associative_cache #(
 );
 
 
-  localparam integer CACHE_LINES = 2 ** SET_BIT_WIDTH;
-  localparam integer TAG_WIDTH = INPUT_WIDTH - SET_BIT_WIDTH;
+  localparam int CACHE_LINES = 2 ** SET_BIT_WIDTH;
+  localparam int TAG_WIDTH = INPUT_WIDTH - SET_BIT_WIDTH;
 
   logic [SET_BIT_WIDTH - 1:0] set;
-  assign set = in[SET_BIT_WIDTH-1:0];
+  assign set = inp[SET_BIT_WIDTH-1:0];
 
   logic [TAG_WIDTH - 1:0] tag;
-  assign tag = in[INPUT_WIDTH-1:SET_BIT_WIDTH];
+  assign tag = inp[INPUT_WIDTH-1:SET_BIT_WIDTH];
 
   logic write_enables[CACHE_LINES];
 
@@ -39,9 +39,9 @@ module fully_associative_cache #(
 
 
 
-// TODO: the parameters here are in wrong order no?
+// TODO: the parameters here are in wrong order no? First comes the control and then the width
   demux #(SET_BIT_WIDTH, 1) enable_demux (
-      .in(read_write),
+      .inp(read_write),
       .ctrl(set),
       .out(write_enables)
   );
@@ -68,7 +68,7 @@ module fully_associative_cache #(
   comparator #(
       .WIDTH(TAG_WIDTH + 1)
   ) hit_cmp (
-      .in_1({in[INPUT_WIDTH-1:SET_BIT_WIDTH], 1'b1}),
+      .in_1({inp[INPUT_WIDTH-1:SET_BIT_WIDTH], 1'b1}),
       .in_2({tag_from_lines[set], valid_from_lines[set]}),
       .is_equal(hit)
   );

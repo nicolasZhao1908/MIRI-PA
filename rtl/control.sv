@@ -4,31 +4,25 @@ module control
   import brisc_pkg::*;
 (
     input logic [ILEN-1:0] instr,
-    output itype_e itype,
-    output logic is_valid
+    output itype_e itype
 );
 
-  logic [OPCODE_BITS-1:0] opcode;
-  assign opcode = instr[OPCODE_BITS-1:0];
-
   always_comb begin
-    is_valid = 1;
-    unique case (opcode)
+    case (instr[OPCODE_BITS-1:0])
       OPCODE_LOAD: begin
-        itype = I;
+        assign itype = I;
       end
       OPCODE_OP: begin
-        itype = R;
+        assign itype = R;
       end
       OPCODE_STORE: begin
-        itype = S;
+        assign itype = S;
       end
       OPCODE_BRANCH: begin
-        itype = B;
+        assign itype = B;
       end
       default: begin
-        itype = I;
-        is_valid = 0;
+        assign itype = INVALID;
       end
     endcase
   end

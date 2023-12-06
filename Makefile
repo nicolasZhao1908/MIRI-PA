@@ -1,14 +1,14 @@
-SIM ?= verilator
-TOPLEVEL_LANG ?= verilog
+TESTS := tb/test_control \
+		tb/test_adder \
+		tb/test_dcache \
+		tb/test_arbiter
 
-VERILOG_INCLUDE_DIRS += $(PWD)/rtl
+.PHONY: $(TESTS) clean all
 
-VERILOG_SOURCES += $(PWD)/rtl/cache/dcache.sv
-# TOPLEVEL is the name of the toplevel module in your Verilog or VHDL file
-TOPLEVEL = two_caches_arbiter_testonly
+all: $(TESTS)
 
-# MODULE is the basename of the Python test file
-MODULE = tb.test_cache.test_arbiter
+$(TESTS):
+	@cd $@ && $(MAKE)
 
-# include cocotb's make rules to take care of the simulator setup
-include $(shell cocotb-config --makefiles)/Makefile.sim
+clean:
+	$(foreach TEST, $(TESTS), $(MAKE) -C $(TEST) clean;)

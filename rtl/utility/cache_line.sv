@@ -1,8 +1,8 @@
 `include "utility/ff.sv"
 
 module cache_line #(
-    parameter integer TAG_WIDTH  = 30,
-    parameter integer DATA_WIDTH = 32
+    parameter int TAG_WIDTH  = 30,
+    parameter int DATA_WIDTH = 32
 ) (
     input logic clk,
     input logic write,
@@ -17,7 +17,7 @@ module cache_line #(
   ff valid (
       .clk(clk),
       .enable(write),
-      .in(valid_in),
+      .inp(valid_in),
       .out(valid_out),
       .reset()
   );
@@ -26,7 +26,7 @@ module cache_line #(
   ) tag (
       .clk(clk),
       .enable(write),
-      .in(tag_in),
+      .inp(tag_in),
       .out(tag_out),
       .reset()
   );
@@ -35,7 +35,7 @@ module cache_line #(
   ) data (
       .clk(clk),
       .enable(write),
-      .in(data_in),
+      .inp(data_in),
       .out(data_out),
       .reset()
   );

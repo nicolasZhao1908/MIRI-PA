@@ -15,11 +15,12 @@ package brisc_pkg;
   parameter logic [REG_LEN-1:0] PC_BOOT = 32'h00001000;
   parameter logic [REG_LEN-1:0] PC_EXCEPT = 32'h00002000;
 
-  typedef enum logic [1:0] {
-    R,
-    I,
-    S,
-    B
+  typedef enum logic [2:0] {
+    I=3'b000,
+    R=3'b001,
+    S=3'b010,
+    B=3'b011,
+    INVALID=3'b100
   } itype_e;
 
   typedef enum logic [4:0] {

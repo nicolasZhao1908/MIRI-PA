@@ -1,8 +1,8 @@
 `include "utility/ff.sv"
 
 module arbiter #(
-    parameter integer ADDRESS_WIDTH = 32,
-    parameter integer DATA_WIDTH = 32
+    parameter int ADDRESS_WIDTH = 32,
+    parameter int DATA_WIDTH = 32
 ) (
     input logic clk,
     input logic req_1,
@@ -34,7 +34,7 @@ module arbiter #(
       .clk(clk),
       .enable(1'b1),
       .reset(1'b0),
-      .in(gr2),
+      .inp(gr2),
       .out(ff_out)
   );
 
@@ -57,7 +57,7 @@ module arbiter #(
       .clk(~clk),
       .enable(1'b1),
       .reset(1'b0),
-      .in(~(ff_out & req_2) & req_1),
+      .inp(~(ff_out & req_2) & req_1),
       .out(grant_1_stableizer_ff_out)
   );
   assign grant_1 = grant_1_stableizer_ff_out & (~(ff_out & req_2) & req_1);
@@ -67,7 +67,7 @@ module arbiter #(
       .clk(~clk),
       .enable(1'b1),
       .reset(1'b0),
-      .in(gr2),
+      .inp(gr2),
       .out(grant_2_stableizer_ff_out)
   );
   assign grant_2 = grant_2_stableizer_ff_out & gr2;

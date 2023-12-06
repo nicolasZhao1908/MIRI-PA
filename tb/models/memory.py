@@ -1,4 +1,3 @@
-
 class Memory:
     def __init__(self, fill_data_width=128, spaces=128, cell_width=32):
         self.fill_data_width = fill_data_width
