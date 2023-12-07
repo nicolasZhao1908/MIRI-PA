@@ -1,8 +1,8 @@
 `include "utility/ff.sv"
 
 module cache_line #(
-    parameter int TAG_WIDTH  = 30,
-    parameter int DATA_WIDTH = 32
+    parameter integer unsigned TAG_WIDTH  = 30,
+    parameter integer unsigned DATA_WIDTH = 32
 ) (
     input logic clk,
     input logic write,

@@ -4,23 +4,28 @@
 `timescale 1ns / 1ps
 
 package brisc_pkg;
-  parameter int unsigned ILEN = 32;
-  parameter int unsigned REG_LEN = 32;
-  parameter int unsigned BYTE_LEN = 8;
-  parameter int unsigned WORLD_LEN = 32;
-  parameter int unsigned ADDRESS_BITS = 32;
-  parameter int unsigned OPCODE_BITS = 7;
-  parameter int unsigned CACHE_LINE_LEN = 128;
+  parameter integer unsigned ILEN = 32;
+  parameter integer unsigned REG_LEN = 32;
+  parameter integer unsigned BYTE_LEN = 8;
+  parameter integer unsigned WORLD_LEN = 32;
+  parameter integer unsigned ADDRESS_BITS = 32;
+  parameter integer unsigned OPCODE_BITS = 7;
+  parameter integer unsigned CACHE_LINE_LEN = 128;
 
-  parameter logic [REG_LEN-1:0] PC_BOOT = 32'h00001000;
-  parameter logic [REG_LEN-1:0] PC_EXCEPT = 32'h00002000;
+  parameter logic [REG_LEN-1:0] PC_BOOT = 'h00001000;
+  parameter logic [REG_LEN-1:0] PC_EXCEPT = 'h00002000;
+
+  typedef enum logic [0:0] {
+    User       = 1'b0,
+    Supervisor = 1'b1
+  } priv_mode_e;
 
   typedef enum logic [2:0] {
-    I=3'b000,
-    R=3'b001,
-    S=3'b010,
-    B=3'b011,
-    INVALID=3'b100
+    I = 3'b000,
+    R = 3'b001,
+    S = 3'b010,
+    B = 3'b011,
+    INVALID = 3'b100
   } itype_e;
 
   typedef enum logic [4:0] {

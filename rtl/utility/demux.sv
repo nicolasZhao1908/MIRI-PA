@@ -18,8 +18,8 @@ endmodule
 
 
 module demux #(
-    parameter int CTRL = 2,
-    parameter int DATA_WIDTH = 1
+    parameter integer unsigned CTRL = 2,
+    parameter integer unsigned DATA_WIDTH = 1
 ) (
     input logic [DATA_WIDTH - 1:0] inp,
     input logic [CTRL - 1:0] ctrl,

@@ -3,10 +3,10 @@
 `include "cache/arbiter.sv"
 
 module two_caches_arbiter_testonly #(
-    parameter int SET_BIT_WIDTH = 2,
-    parameter int ADDRESS_WIDTH = 32,
-    parameter int DATA_WIDTH = 32,
-    parameter int CACHE_LINE_WIDTH = 128
+    parameter integer unsigned SET_BIT_WIDTH = 2,
+    parameter integer unsigned ADDRESS_WIDTH = 32,
+    parameter integer unsigned DATA_WIDTH = 32,
+    parameter integer unsigned CACHE_LINE_WIDTH = 128
 ) (
     input logic clk,
     input logic enable_1,
@@ -152,10 +152,10 @@ module two_caches_arbiter_testonly #(
 endmodule
 
 module dcache_mem_testonly #(
-    parameter int SET_BIT_WIDTH = 2,
-    parameter int ADDRESS_WIDTH = 32,
-    parameter int DATA_WIDTH = 32,
-    parameter int CACHE_LINE_WIDTH = 128
+    parameter integer unsigned SET_BIT_WIDTH = 2,
+    parameter integer unsigned ADDRESS_WIDTH = 32,
+    parameter integer unsigned DATA_WIDTH = 32,
+    parameter integer unsigned CACHE_LINE_WIDTH = 128
 ) (
     input logic clk,
     input logic store,
@@ -216,10 +216,10 @@ module dcache_mem_testonly #(
 endmodule
 
 module dcache #(
-    parameter int SET_BIT_WIDTH = 2,
-    parameter int ADDRESS_WIDTH = 32,
-    parameter int DATA_WIDTH = 32,
-    parameter int CACHE_LINE_WIDTH = 128
+    parameter integer unsigned SET_BIT_WIDTH = 2,
+    parameter integer unsigned ADDRESS_WIDTH = 32,
+    parameter integer unsigned DATA_WIDTH = 32,
+    parameter integer unsigned CACHE_LINE_WIDTH = 128
 ) (
     input logic clk,
     input logic enable,
@@ -246,7 +246,7 @@ module dcache #(
     output logic [DATA_WIDTH-1:0] data_out
 );
 
-  localparam int CACHE_LINE_BIT_OFFSET = $clog2(CACHE_LINE_WIDTH / DATA_WIDTH);
+  localparam integer unsigned CACHE_LINE_BIT_OFFSET = $clog2(CACHE_LINE_WIDTH / DATA_WIDTH);
 
   logic [ADDRESS_WIDTH - CACHE_LINE_BIT_OFFSET - 1:0] truncated_address_for_cache;
   logic [CACHE_LINE_BIT_OFFSET-1:0] part_in_cacheline;

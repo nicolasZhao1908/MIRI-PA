@@ -1,7 +1,7 @@
 // TODO: Verible lint: for the filename adder.sv we should have a adder module in the file
 // TODO: Maybe split into 2 files: adder.sv and subtractor.sv
 module add_sub #(
-    parameter int N = 32
+    parameter integer unsigned N = 32
 ) (
     input logic [N-1:0] a,
     input logic [N-1:0] b,
@@ -25,7 +25,7 @@ module add_sub #(
 endmodule
 
 module adder_N #(
-    parameter int N = 32
+    parameter integer unsigned N = 32
 ) (
     input logic [N-1:0] a,
     input logic [N-1:0] b,

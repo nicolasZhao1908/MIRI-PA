@@ -3,11 +3,11 @@
 `include "utility/comparator"
 
 module memory_v2BROKEN #(
-    parameter int FILL_DATA_WIDTH = 128,
-    parameter int SPACES = 128,
-    parameter int ADDRESS_WIDTH = 32,
-    parameter int STORE_DATA_WIDTH = 32,
-    parameter int DATA_TRANSFER_TIME = 5
+    parameter integer unsigned FILL_DATA_WIDTH = 128,
+    parameter integer unsigned SPACES = 128,
+    parameter integer unsigned ADDRESS_WIDTH = 32,
+    parameter integer unsigned STORE_DATA_WIDTH = 32,
+    parameter integer unsigned DATA_TRANSFER_TIME = 5
 
 ) (
     input logic clk,
@@ -18,7 +18,7 @@ module memory_v2BROKEN #(
     output logic [FILL_DATA_WIDTH-1:0] fill_data,
     output logic response_valid
 );
-  localparam int DMX_CONTROL_SIZE = $clog2(SPACES);
+  localparam integer unsigned DMX_CONTROL_SIZE = $clog2(SPACES);
 
 
   logic enables[SPACES];
@@ -48,8 +48,8 @@ module memory_v2BROKEN #(
     end
   endgenerate
 
-  localparam int FF_PER_LINE = FILL_DATA_WIDTH / STORE_DATA_WIDTH;
-  localparam int LINES = SPACES / FF_PER_LINE;
+  localparam integer unsigned FF_PER_LINE = FILL_DATA_WIDTH / STORE_DATA_WIDTH;
+  localparam integer unsigned LINES = SPACES / FF_PER_LINE;
 
   logic [FILL_DATA_WIDTH-1:0] data_out_lines[LINES];
 
@@ -94,11 +94,11 @@ module memory_v2BROKEN #(
 endmodule
 
 module memory #(
-    parameter int FILL_DATA_WIDTH = 128,
-    parameter int SPACES = 128,
-    parameter int ADDRESS_WIDTH = 32,
-    parameter int STORE_DATA_WIDTH = 32,
-    parameter int DATA_TRANSFER_TIME = 5
+    parameter integer unsigned FILL_DATA_WIDTH = 128,
+    parameter integer unsigned SPACES = 128,
+    parameter integer unsigned ADDRESS_WIDTH = 32,
+    parameter integer unsigned STORE_DATA_WIDTH = 32,
+    parameter integer unsigned DATA_TRANSFER_TIME = 5
 
 ) (
     input logic clk,
@@ -120,7 +120,7 @@ module memory #(
 );
   //TODO NO RESET DEFINED! reset
 
-  localparam int CONTROL_BITS_FOR_FF_SELECTION = $clog2(SPACES);
+  localparam integer unsigned CONTROL_BITS_FOR_FF_SELECTION = $clog2(SPACES);
 
   logic [0:0] enables[SPACES];
   logic [STORE_DATA_WIDTH-1:0] data_out[SPACES];
@@ -149,8 +149,8 @@ module memory #(
     end
   endgenerate
 
-  localparam int FF_PER_LINE = FILL_DATA_WIDTH / STORE_DATA_WIDTH;
-  localparam int LINES = SPACES / FF_PER_LINE;
+  localparam integer unsigned FF_PER_LINE = FILL_DATA_WIDTH / STORE_DATA_WIDTH;
+  localparam integer unsigned LINES = SPACES / FF_PER_LINE;
 
   logic [FILL_DATA_WIDTH-1:0] lines_out[LINES];
   logic [$clog2(LINES) - 1:0] selected_line;

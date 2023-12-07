@@ -8,21 +8,21 @@ module control
 );
 
   always_comb begin
-    case (instr[OPCODE_BITS-1:0])
+    unique case (instr[OPCODE_BITS-1:0])
       OPCODE_LOAD: begin
-        assign itype = I;
+        itype = I;
       end
       OPCODE_OP: begin
-        assign itype = R;
+        itype = R;
       end
       OPCODE_STORE: begin
-        assign itype = S;
+        itype = S;
       end
       OPCODE_BRANCH: begin
-        assign itype = B;
+        itype = B;
       end
       default: begin
-        assign itype = INVALID;
+        itype = INVALID;
       end
     endcase
   end

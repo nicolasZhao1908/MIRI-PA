@@ -1,11 +1,13 @@
 `ifndef FF_SV
 `define FF_SV
+`include "../brisc_pkg.svh"
 
 `timescale 1ns / 1ps
 
-module ff #(
-    // flipflop stores 1 bit of data
-    parameter int WIDTH = 1,
+module ff
+  import brisc_pkg::*;
+#(
+    parameter integer unsigned WIDTH = REG_LEN,
     parameter bit RESET_VALUE = 1'b0
 ) (
     input logic clk,
@@ -14,18 +16,24 @@ module ff #(
     input logic [WIDTH - 1:0] inp,
     output logic [WIDTH - 1:0] out
 );
-  always @(posedge clk) begin
-    if (reset) out <= {WIDTH{RESET_VALUE}};
-    else if (enable) out <= inp;
-    else out <= out;
+  always_ff @(posedge clk) begin
+    if (reset) begin
+       out <= {WIDTH{RESET_VALUE}};
+    end
+    else if (enable) begin
+        out <= inp;
+    end
+    else begin
+       out <= out;
+    end
   end
 
 endmodule
 
 module nff #(
-    parameter int N = 3,
-    parameter int WIDTH = 1,
-    parameter int RESET_VALUE = 0
+    parameter integer unsigned N = 3,
+    parameter integer unsigned WIDTH = 1,
+    parameter bit RESET_VALUE = 1'b0
 ) (
     input logic clk,
     input logic enable,

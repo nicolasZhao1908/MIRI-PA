@@ -1,8 +1,8 @@
 `include "utility/ff.sv"
 
 module arbiter #(
-    parameter int ADDRESS_WIDTH = 32,
-    parameter int DATA_WIDTH = 32
+    parameter integer unsigned ADDRESS_WIDTH = 32,
+    parameter integer unsigned DATA_WIDTH = 32
 ) (
     input logic clk,
     input logic req_1,

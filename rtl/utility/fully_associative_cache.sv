@@ -3,9 +3,9 @@
 `include "utility/demux.sv"
 
 module fully_associative_cache #(
-    parameter int SET_BIT_WIDTH = 2,
-    parameter int INPUT_WIDTH = 32,
-    parameter int DATA_WIDTH = 32
+    parameter integer unsigned SET_BIT_WIDTH = 2,
+    parameter integer unsigned INPUT_WIDTH = 32,
+    parameter integer unsigned DATA_WIDTH = 32
 ) (
     input logic clk,
     input logic read_write,
@@ -22,8 +22,8 @@ module fully_associative_cache #(
 );
 
 
-  localparam int CACHE_LINES = 2 ** SET_BIT_WIDTH;
-  localparam int TAG_WIDTH = INPUT_WIDTH - SET_BIT_WIDTH;
+  localparam integer unsigned CACHE_LINES = 2 ** SET_BIT_WIDTH;
+  localparam integer unsigned TAG_WIDTH = INPUT_WIDTH - SET_BIT_WIDTH;
 
   logic [SET_BIT_WIDTH - 1:0] set;
   assign set = inp[SET_BIT_WIDTH-1:0];
