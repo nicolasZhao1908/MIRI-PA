@@ -5,6 +5,8 @@
 
 package brisc_pkg;
   parameter integer unsigned ILEN = 32;
+  parameter integer unsigned MEM_REQ_DELAY = 5;
+  parameter integer unsigned MEM_RESP_DELAY = 5;
   parameter integer unsigned REG_LEN = 32;
   parameter integer unsigned BYTE_LEN = 8;
   parameter integer unsigned WORLD_LEN = 32;

@@ -21,5 +21,9 @@ async def test_write_read(dut):
         await RisingEdge(dut.clk)
         # read performed
         if dut.enable.value == 1:
-            assert dut.rs1_data.value == expected_value
-            assert dut.rs2_data.value == expected_value
+            assert (
+                dut.rs1_data.value == expected_value
+            ), f"read value in iteration {i} was {dut.rs1.data.value}, expected {expected_value}"
+            assert (
+                dut.rs2_data.value == expected_value
+            ), f"read value in iteration {i} was {dut.rs2.data.value}, expected {expected_value}"

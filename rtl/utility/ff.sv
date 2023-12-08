@@ -27,7 +27,6 @@ module ff
        out <= out;
     end
   end
-
 endmodule
 
 module nff #(

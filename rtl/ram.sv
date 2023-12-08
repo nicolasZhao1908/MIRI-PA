@@ -5,41 +5,106 @@ module ram
 (
     input logic clk,
     input logic req,
-    input logic [31:0] addr,
+    input logic [ADDRESS_BITS-1:0] addr,
     output logic resp,
     output logic [31:0] data
 );
   logic [31:0] ram[63];
-  logic [31:0] ph_addr;
-  localparam logic [2:0] DelayCycles = 3'b101;
-  localparam integer unsigned DelayBits = $clog2(DelayCycles);
-  logic [DelayBits-1:0] resp_delay;
-  logic [DelayBits-1:0] req_delay;
+
+  logic [31:0] data_bus;
+  logic [ADDRESS_BITS-1:0] addr_bus;
+  logic req_bus;
+  logic [ADDRESS_BITS-1:0] in_addrs[MEM_REQ_DELAY];
+  logic [0:0] in_reqs[MEM_REQ_DELAY];
+  logic [31:0] out_datas[MEM_RESP_DELAY];
+  logic [0:0] out_resps[MEM_RESP_DELAY];
 
   initial begin
-    req_delay  = DelayCycles;
-    resp_delay = DelayCycles;
+    resp = 0;
+    data = '0;
+    req_bus = 0;
+    data_bus = 0;
+    addr_bus = 0;
+    for (int unsigned i = 0; i < MEM_REQ_DELAY; ++i) begin
+      in_addrs[i] = '0;
+      in_reqs[i]  = '0;
+    end
+    for (int unsigned i = 0; i < MEM_RESP_DELAY; ++i) begin
+      out_datas[i] = '0;
+      out_resps[i] = '0;
+    end
+
     $readmemh("ram.txt", ram);
   end
 
-  always_ff @(posedge clk) begin : request_delay
-    if (req && req_delay > 3'b000) begin
-      req_delay <= req_delay - 3'b001;
+  genvar i;
+  // MEM REQUEST DELAY of 5 cycles
+  // Artificial delays w/ ffs
+  generate
+    for (i = 0; i < MEM_REQ_DELAY; ++i) begin : g_in_req_delay
+      ff #(
+          .WIDTH(1)
+      ) req_i (
+          .clk(clk),
+          .enable(i == 0 ? req : !in_reqs[i]),
+          .reset(in_reqs[i]),
+          .inp(i == 0 ? req : in_reqs[i-1]),
+          .out(in_reqs[i])
+      );
     end
-  end
-  always_ff @(posedge clk) begin : response_delay
-    if (req && req_delay == 3'b000 && resp_delay > 3'b000) begin
-      resp_delay <= resp_delay - 3'b001;
-    end
-  end
-  always_ff @(posedge clk) begin : rst_delays
-    if (req && req_delay == 3'b000 && resp_delay == 3'b000) begin
-      resp_delay <= DelayCycles;
-      req_delay  <= DelayCycles;
-    end
-  end
+  endgenerate
+  assign req_bus = in_reqs[MEM_RESP_DELAY-1];
 
-  assign ph_addr = addr;
-  assign data = ram[ph_addr[7:2]];
-  assign resp = (req && req_delay == 3'b000 && resp_delay == 3'b000) ? 1'b1 : 1'b0;
+  // MEM REQUEST DELAY of 5 cycles
+  // Artificial delays w/ ffs
+  generate
+    for (i = 0; i < MEM_REQ_DELAY; ++i) begin : g_in_addr_delay
+      ff #(
+          .WIDTH(ADDRESS_BITS)
+      ) addr_i (
+          .clk(clk),
+          .enable(i == 0 ? req : !in_reqs[i]),
+          .reset(in_reqs[i]),
+          .inp(i == 0 ? addr : in_addrs[i-1]),
+          .out(in_addrs[i])
+      );
+    end
+  endgenerate
+  assign addr_bus = in_addrs[MEM_REQ_DELAY-1];
+
+
+  // MEM RESPONSE DELAY of 5 cycles
+  // Artificial delays w/ ffs
+  generate
+    for (i = 0; i < MEM_RESP_DELAY; ++i) begin : g_out_resp_delay
+      ff #(
+          .WIDTH(1)
+      ) resp_i (
+          .clk(clk),
+          .enable(i == 0 ? req_bus : !out_resps[i]),
+          .reset(out_resps[i]),
+          .inp(i == 0 ? req_bus : out_resps[i-1]),
+          .out(out_resps[i])
+      );
+    end
+  endgenerate
+  assign resp = out_resps[MEM_RESP_DELAY-1];
+
+  // MEM RESPONSE DELAY of 5 cycles
+  // Artificial delays w/ ffs
+  generate
+    for (i = 0; i < MEM_RESP_DELAY; ++i) begin : g_out_data_delay
+      ff #(
+          .WIDTH(ADDRESS_BITS)
+      ) data_i (
+          .clk(clk),
+          .enable(i == 0 ? req_bus : !out_resps[i]),
+          .reset(out_resps[i]),
+          .inp(i == 0 ? ram[addr_bus[7:2]] : out_datas[i-1]),
+          .out(out_datas[i])
+      );
+    end
+  endgenerate
+  assign data = out_datas[MEM_RESP_DELAY-1];
+
 endmodule

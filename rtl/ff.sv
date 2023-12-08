@@ -3,7 +3,8 @@
 module ff
   import brisc_pkg::*;
 #(
-    parameter integer unsigned WIDTH = REG_LEN
+    parameter integer unsigned WIDTH = REG_LEN,
+    parameter integer unsigned RESET_VALUE = {WIDTH{1'b0}}
 ) (
     input logic clk,
     input logic enable,
@@ -13,10 +14,9 @@ module ff
 );
   always_ff @(posedge clk) begin
     if (reset) begin
-      out <= 'b0;
+      out <= RESET_VALUE;
     end else if (enable) begin
       out <= inp;
     end
   end
-
 endmodule
