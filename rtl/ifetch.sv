@@ -7,13 +7,13 @@ module ifetch
     input logic clk,
     input logic reset,
     input logic stall_fetch,
-    output logic [ILEN-1:0] instr,
     input logic b_taken,
-    input logic [ADDRESS_BITS-1:0] b_target
+    input logic [ADDRESS_BITS-1:0] b_target,
+    output logic [ILEN-1:0] instr
     // input logic priv_mode,
 );
-  logic [REG_LEN-1:0] pc_next;
-  logic [REG_LEN-1:0] pc_curr;
+  logic [XLEN-1:0] pc_next;
+  logic [XLEN-1:0] pc_curr;
 
 //   logic [ADDRESS_BITS-1:0] mem_addr;
 //   logic mem_resp;

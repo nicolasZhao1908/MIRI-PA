@@ -1,4 +1,4 @@
-TESTS := tb/test_control \
+TESTS := tb/test_idecoder \
 		tb/test_adder \
 		tb/test_dcache \
 		tb/test_arbiter \

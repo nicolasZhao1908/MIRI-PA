@@ -6,11 +6,11 @@ TB_DIR=$(ROOT_DIR)/tb
 RTL_DIR=$(ROOT_DIR)/rtl
 
 export PYTHONPATH:=$(TB_DIR)/models:$(PYTHONPATH)
-VERILOG_SOURCES=$(RTL_DIR)/control.sv
+VERILOG_SOURCES=$(RTL_DIR)/idecoder.sv
 
 EXTRA_ARGS+=--trace-fst --trace-structs -I$(RTL_DIR)
 
-TOPLEVEL=control
-MODULE=test_control
+TOPLEVEL=idecoder
+MODULE=test_idecoder
 
 include $(shell cocotb-config --makefiles)/Makefile.sim

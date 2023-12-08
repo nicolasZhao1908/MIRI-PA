@@ -4,66 +4,142 @@ module idecoder
   import brisc_pkg::*;
 (
     input logic [ILEN-1:0] instr,
-    input itype_e i_type,
-    output logic [OPCODE_BITS-1:0] opcode,
     output logic [RegBits-1:0] rs1,
     output logic [RegBits-1:0] rs2,
     output logic [RegBits-1:0] rd,
-    output logic [6:0] funct7,
-    output logic [2:0] funct3,
-    output logic [REG_LEN-1:0] imm,
+    output logic [XLEN-1:0] imm,
+    output instruction_e out_instr,
     output logic i_valid
 );
+  logic [OPCODE_BITS-1:0] opcode;
+  logic [6:0] funct7;
+  logic [2:0] funct3;
+  itype_e instr_type;
 
-  logic [11:0] i_imm, s_imm;
-  logic [19:0] u_imm, j_imm;
-  logic [12:1] b_imm;
+  localparam integer unsigned RegBits = $clog2(XLEN);
 
-  localparam integer unsigned RegBits = $clog2(REG_LEN);
   always_comb begin
-    opcode = instr[OPCODE_BITS-1:0];
-    i_valid = 1'b1;
-    i_imm = 12'h000;
-    b_imm = 12'h000;
-    s_imm = 12'h000;
-    rs1 = 5'b0_0000;
-    rs2 = 5'b0_0000;
-    rd = 5'b0_0000;
-    funct3 = 3'b000;
-    funct7 = 7'b000_0000;
-    imm = 32'h0000_00000;
-    unique case (i_type)
-      R: begin
-        rs1 = instr[19:15];
-        rs2 = instr[24:20];
-        rd = instr[11:7];
-        funct7 = instr[31:25];
-        funct3 = instr[14:12];
+    assign i_valid = 1'b1;
+    assign imm = 32'h0000_00000;
+    assign rs1 = instr[19:15];
+    assign rs2 = instr[24:20];
+    assign rd = instr[11:7];
+    assign funct7 = instr[31:25];
+    assign funct3 = instr[14:12];
+    assign opcode = instr[OPCODE_BITS-1:0];
+
+    unique case (opcode)
+      OPCODE_ALU: begin
+        assign instr_type = R;
       end
+      OPCODE_LOAD, OPCODE_IMM: begin
+        assign instr_type = I;
+      end
+      OPCODE_STORE: begin
+        assign instr_type = S;
+      end
+      OPCODE_BRANCH: begin
+        assign instr_type = B;
+      end
+      OPCODE_JUMP: begin
+        assign instr_type = J;
+      end
+      default: begin
+        i_valid = 0;
+      end
+    endcase
+    unique case (instr_type)
+      // SUB, ADD, MUL, AND, OR, XOR
+      R: begin
+        unique case (funct7)
+          // for synthesis this is probably non-ideal...
+          FUNCT7_AND & FUNCT7_OR & FUNCT7_ADD & FUNCT7_XOR: begin
+            unique case (funct3)
+              FUNCT3_ADD: begin
+                assign out_instr = ADD;
+              end
+              FUNCT3_XOR: begin
+                assign out_instr = XOR;
+              end
+              FUNCT3_OR: begin
+                assign out_instr = OR;
+              end
+              FUNCT3_AND: begin
+                assign out_instr = AND;
+              end
+              default: begin
+                assign i_valid = 0;
+              end
+            endcase
+          end
+          FUNCT7_SUB: begin
+            unique case (funct3)
+              FUNCT3_SUB: begin
+                assign out_instr = SUB;
+              end
+              default: begin
+                assign i_valid = 0;
+              end
+            endcase
+          end
+          FUNCT7_MUL: begin
+            unique case (funct3)
+              FUNCT3_MUL: begin
+                assign out_instr = MUL;
+              end
+              default: begin
+                assign i_valid = 0;
+              end
+            endcase
+          end
+          default: begin
+            assign i_valid = 0;
+          end
+        endcase
+      end
+      // LW, LB
       I: begin
-        i_imm = instr[31:20];
-        imm = {{20{i_imm[11]}}, i_imm};
-        rs1 = instr[19:15];
-        rd = instr[11:7];
-        funct3 = instr[14:12];
+        assign imm = {{21{instr[31]}}, instr[30:20]};
+        unique case (funct3)
+          FUNCT3_LB: begin
+            assign out_instr = LB;
+          end
+          FUNCT3_LW: begin
+            assign out_instr = LW;
+          end
+          default: begin
+            assign i_valid = 0;
+          end
+        endcase
       end
       S: begin
-        s_imm[4:0] = instr[11:7];
-        s_imm[11:5] = instr[31:25];
-        imm = {{20{s_imm[11]}}, s_imm};
-        rs1 = instr[19:15];
-        rs2 = instr[24:20];
-        funct3 = instr[14:12];
+        assign imm = {{21{instr[31]}}, instr[30:25], instr[11:7]};
+        unique case (funct3)
+          FUNCT3_SB: begin
+            assign out_instr = SB;
+          end
+          FUNCT3_SW: begin
+            assign out_instr = SW;
+          end
+          default: begin
+            assign i_valid = 0;
+          end
+        endcase
       end
       B: begin
-        b_imm[11] = instr[7];
-        b_imm[4:1] = instr[11:8];
-        b_imm[10:5] = instr[30:25];
-        b_imm[12] = instr[31];
-        imm = {{19{b_imm[12]}}, b_imm, 1'b0};
-        rs1 = instr[19:15];
-        rs2 = instr[24:20];
-        funct3 = instr[14:12];
+        assign imm = {{20{instr[31]}}, instr[7], instr[30:25], instr[11:8], 1'b0};
+        unique case (funct3)
+          FUNCT3_BEQ: begin
+            assign out_instr = BEQ;
+          end
+          default: begin
+            assign i_valid = 0;
+          end
+        endcase
+      end
+      J: begin
+        assign imm = {{12{instr[31]}}, instr[19:12], instr[20], instr[30:21], 1'b0};
+        assign out_instr = JAL;
       end
       default: i_valid = 1'b0;
     endcase

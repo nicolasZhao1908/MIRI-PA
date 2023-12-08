@@ -1,9 +1,9 @@
 `include "brisc_pkg.svh"
 
 module regfile
-  import brisc_pkg::*;
+  import brisc_pkg::XLEN;
 #(
-    parameter integer unsigned REG_LENGTH = REG_LEN,
+    parameter integer unsigned REG_LENGTH = XLEN,
     parameter integer unsigned REG_NUM = 32
 ) (
     input logic clk,
