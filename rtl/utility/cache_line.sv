@@ -14,7 +14,9 @@ module cache_line #(
     output logic [DATA_WIDTH -1:0] data_out
 );
 
-  ff valid (
+  ff #(
+      .WIDTH(1)
+  ) valid (
       .clk(clk),
       .enable(write),
       .inp(valid_in),

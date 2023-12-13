@@ -1,6 +1,6 @@
 `ifndef FF_SV
 `define FF_SV
-`include "../brisc_pkg.svh"
+`include "brisc_pkg.svh"
 
 `timescale 1ns / 1ps
 

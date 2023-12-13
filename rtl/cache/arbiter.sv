@@ -53,7 +53,9 @@ module arbiter #(
     */
 
   logic grant_1_stableizer_ff_out;
-  ff stabelizer_ff1 (
+  ff #(
+      .WIDTH(1)
+  ) stabelizer_ff1 (
       .clk(~clk),
       .enable(1'b1),
       .reset(1'b0),
@@ -63,7 +65,9 @@ module arbiter #(
   assign grant_1 = grant_1_stableizer_ff_out & (~(ff_out & req_2) & req_1);
 
   logic grant_2_stableizer_ff_out;
-  ff stabelizer_ff2 (
+  ff #(
+      .WIDTH(1)
+  ) stabelizer_ff2 (
       .clk(~clk),
       .enable(1'b1),
       .reset(1'b0),
