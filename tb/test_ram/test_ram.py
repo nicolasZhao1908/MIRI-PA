@@ -1,13 +1,11 @@
+from clock import BRiscClock
 import cocotb
-from cocotb.triggers import RisingEdge
-from cocotb.clock import Clock
 
 
 @cocotb.test()
 async def test_response_delay(dut):
-    clock = Clock(dut.clk, 5, units="ns")
-    cocotb.start_soon(clock.start(start_high=False))
-    delay = 10
+    clock = BRiscClock(dut.clk)
+    total_cycles = 20
     req = 1
     addr = 0x0000_0000
     expected_resp = 0b1
@@ -16,18 +14,18 @@ async def test_response_delay(dut):
     dut.addr.value = addr
 
     print(f"Setting req={req} and addr={addr}")
-    await RisingEdge(dut.clk)
+    await clock.tick()
 
-    for i in range(1, delay + 1):
-        await RisingEdge(dut.clk)
+    for i in range(1, total_cycles + 1):
+        await clock.tick()
         print(f"clock cycle {i}: {dut.data.value} {dut.resp.value} {expected_data} {expected_resp}")
-        if i == delay:
+        if i == total_cycles:
             assert (
                 dut.data.value == expected_data
-            ), f"after {delay} clock cycles the expected data {expected_data} was not returned"
+            ), f"after {total_cycles} clock cycles the expected data {expected_data} was not returned"
             assert(
                 dut.resp.value == expected_resp
-            ), f"after {delay} clock cycles the expected response {expected_resp} was not returned"
+            ), f"after {total_cycles} clock cycles the expected response {expected_resp} was not returned"
         else:
             assert (
                 dut.data.value != expected_data

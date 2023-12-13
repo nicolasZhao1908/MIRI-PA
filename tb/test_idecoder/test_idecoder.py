@@ -129,6 +129,15 @@ async def is_jal(dut):
     assert dut.out_instr.value == 0b01100
 
 @cocotb.test()
+async def is_addi(dut):
+    dut.instr.value = 0b11000000000100001010_00001_0010011
+    await Timer(1, units="ns")
+    assert dut.rs1.value == 0b00001
+    assert dut.imm.value == 0b1111_1111_111_1_00001010_1_10000000000
+    assert dut.i_valid.value == 0b1
+    assert dut.out_instr.value == 0b00010
+
+@cocotb.test()
 async def is_invalid(dut):
     dut.instr.value = 0x0000_0000
     await Timer(1, units="ns")

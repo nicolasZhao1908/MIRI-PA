@@ -8,6 +8,7 @@ package brisc_pkg;
   parameter integer unsigned XLEN = 32;
   parameter integer unsigned MEM_REQ_DELAY = 5;
   parameter integer unsigned MEM_RESP_DELAY = 5;
+  parameter integer unsigned MUL_DELAY = 5;
   parameter integer unsigned BYTE_LEN = 8;
   parameter integer unsigned WORLD_LEN = 32;
   parameter integer unsigned ADDRESS_BITS = 32;
@@ -17,6 +18,12 @@ package brisc_pkg;
   parameter logic [XLEN-1:0] PC_BOOT = 'h00001000;
   parameter logic [XLEN-1:0] PC_EXCEPT = 'h00002000;
 
+  // in RISC-V the modes are:
+  // 00 User
+  // 01 Supervisor
+  // 10 Reserved
+  // 11 Machine
+  // Here we just implement supervisor and user mode
   typedef enum logic [0:0] {
     USER       = 1'b0,
     SUPERVISOR = 1'b1
@@ -29,7 +36,7 @@ package brisc_pkg;
     B = 3'b011,
     J = 3'b100,
     INVALID = 3'b111
-  } itype_e;
+  } instr_type_e;
 
   typedef enum logic [4:0] {
     LW   = 5'b00000,
@@ -45,7 +52,7 @@ package brisc_pkg;
     SB   = 5'b01010,
     BEQ  = 5'b01011,
     JAL  = 5'b01100
-  } instruction_e;
+  } instr_e;
 
   typedef enum logic [OPCODE_BITS-1:0] {
     // SUB, ADD, MUL, AND, OR, XOR

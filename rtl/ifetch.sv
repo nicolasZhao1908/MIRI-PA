@@ -10,23 +10,14 @@ module ifetch
     input logic b_taken,
     input logic [ADDRESS_BITS-1:0] b_target,
     output logic [ILEN-1:0] instr
-    // input logic priv_mode,
 );
   logic [XLEN-1:0] pc_next;
   logic [XLEN-1:0] pc_curr;
 
-//   logic [ADDRESS_BITS-1:0] mem_addr;
-//   logic mem_resp;
-//   logic mem_req;
   logic pc_update;
 
   assign pc_update = !stall_fetch;
   assign pc_next   = b_taken ? b_target : pc_curr + 4;
-
-  initial begin
-    // mem_resp = 1'b0;
-    // mem_req  = 1'b0;
-  end
 
   ff #(
       .WIDTH(32),

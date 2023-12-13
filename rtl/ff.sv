@@ -3,8 +3,8 @@
 module ff
   import brisc_pkg::*;
 #(
-    parameter integer unsigned WIDTH = XLEN,
-    parameter integer unsigned RESET_VALUE = {WIDTH{1'b0}}
+    parameter int unsigned WIDTH = XLEN,
+    parameter int unsigned RESET_VALUE = '0
 ) (
     input logic clk,
     input logic enable,

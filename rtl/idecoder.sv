@@ -1,5 +1,6 @@
 `include "brisc_pkg.svh"
 
+
 module idecoder
   import brisc_pkg::*;
 (
@@ -8,15 +9,15 @@ module idecoder
     output logic [RegBits-1:0] rs2,
     output logic [RegBits-1:0] rd,
     output logic [XLEN-1:0] imm,
-    output instruction_e out_instr,
+    output instr_e out_instr,
     output logic i_valid
 );
   logic [OPCODE_BITS-1:0] opcode;
   logic [6:0] funct7;
   logic [2:0] funct3;
-  itype_e instr_type;
+  instr_type_e instr_type;
 
-  localparam integer unsigned RegBits = $clog2(XLEN);
+  localparam int unsigned RegBits = $clog2(XLEN);
 
   always_comb begin
     assign i_valid = 1'b1;

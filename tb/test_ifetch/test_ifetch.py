@@ -1,41 +1,22 @@
+from clock import BRiscClock
 import random
 import cocotb
-from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge
-
-
-async def resp_delay(clk):
-    await RisingEdge(clk)
-    await RisingEdge(clk)
-    await RisingEdge(clk)
-    await RisingEdge(clk)
-    await RisingEdge(clk)
-
-
-async def req_delay(clk):
-    await RisingEdge(clk)
-    await RisingEdge(clk)
-    await RisingEdge(clk)
-    await RisingEdge(clk)
-    await RisingEdge(clk)
-
 
 @cocotb.test()
 async def test_next_pc(dut):
-    clock = Clock(dut.clk, 5, units="ns")
-    cocotb.start_soon(clock.start(start_high=False))
+    clock =  BRiscClock(dut.clk)
     boot_addr = 0x1000
     offset = 0
 
     # Reset
     dut.reset.value = 0b1
-    await RisingEdge(dut.clk)
+    await clock.tick()
     dut.reset.value = 0b0
 
     for i in range(1,1001):
         expected_curr = boot_addr + offset
         expected_next = boot_addr + offset + 4
-        await RisingEdge(dut.clk)
+        await clock.tick()
         assert (
             dut.pc_curr.value == boot_addr + offset
         ), f"failed at clock {i}: {expected_curr=} got {dut.pc_curr.value}"
@@ -47,11 +28,10 @@ async def test_next_pc(dut):
 
 @cocotb.test()
 async def test_b_taken(dut):
-    clock = Clock(dut.clk, 5, units="ns")
-    cocotb.start_soon(clock.start(start_high=False))
+    clock =  BRiscClock(dut.clk)
     # Reset
     dut.reset.value = 0b1
-    await RisingEdge(dut.clk)
+    await clock.tick()
     dut.reset.value = 0b0
 
     for i in range(1,1001):
@@ -59,7 +39,7 @@ async def test_b_taken(dut):
         b_taken = random.randint(0, 1)
         dut.b_taken.value = b_taken
         dut.b_target.value = b_target
-        await RisingEdge(dut.clk)
+        await clock.tick()
         expected_next = b_target if b_taken else dut.pc_curr.value + 4
         assert (
             dut.pc_next.value == expected_next
