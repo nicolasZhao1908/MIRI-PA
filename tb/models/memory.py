@@ -1,13 +1,20 @@
 class Memory:
-    def __init__(self, fill_data_width=128, spaces=128, cell_width=32):
+    def __init__(self, fill_data_width=128, spaces=128 * 4, cell_width=8):
         self.fill_data_width = fill_data_width
         self.size = spaces
         self.mem = [0] * spaces
         self.cell_width = cell_width
         self.cells_per_line = fill_data_width // cell_width
+        self.cells_per_word = 32 // cell_width
 
-    def store(self, addr, data):
-        self.mem[addr] = data
+    def store(self, addr, data, word):
+        if (not word):
+            self.mem[addr] = data
+        else:
+            for i in range(0, self.cells_per_word):
+                mask = 0xFF << (8 * i)
+                local_data = (data & mask) >> (8 * i)
+                self.mem[addr + i] = local_data
 
     def load(self, addr):
         line_start = (addr // self.cells_per_line) * self.cells_per_line
