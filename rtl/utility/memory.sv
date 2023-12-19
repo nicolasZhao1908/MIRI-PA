@@ -21,11 +21,11 @@ module memory #(
 
     
     // ,output logic [0:0] enables_o [512]
+    // ,output logic [STORE_DATA_WIDTH-1:0] data_out_out [128*4]
     // ,output logic [31:0] evictD
     /*,output logic stAndReq
     ,output logic [6:0] ctrAddr
     ,output logic [128:0] mem_o_isnt
-    ,output logic [STORE_DATA_WIDTH-1:0] data_out_out [128]
     ,output logic [STORE_DATA_WIDTH-1:0] evict_data_out */
 
 );
@@ -137,10 +137,10 @@ module memory #(
 
   //DEBUG
   /*
+    assign data_out_out = data_out;
     assign stAndReq = store & req;
     assign ctrAddr = address[CONTROL_BITS_FOR_FF_SELECTION-1:0];
     assign mem_o_isnt ={valid_out, lines_out[selected_line]};
-    assign data_out_out = data_out;
     assign evict_data_out = evict_data;
     */
 

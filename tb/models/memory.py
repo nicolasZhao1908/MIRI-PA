@@ -16,6 +16,8 @@ class Memory:
                 local_data = (data & mask) >> (8 * i)
                 self.mem[addr + i] = local_data
 
+        # print(f"Mem: {[self.mem[i] for i in range(20)]}")
+
     def load(self, addr):
         line_start = (addr // self.cells_per_line) * self.cells_per_line
 
@@ -25,8 +27,22 @@ class Memory:
         return result
 
 
-    def load_ONLY_ONE(self, addr):
+    def load_ONLY_ONE_BYTE(self, addr):
         return self.mem[addr]
+    
+    def load_ONLY_ONE_WORD(self, addr):
+        startAddr = (addr // 4) * 4
+        data = 0
+        mask = 0xFF
+        data = data ^ (mask & self.mem[startAddr])
+        data = data ^ ((mask & self.mem[startAddr + 1]) << 8)
+        data = data ^ ((mask & self.mem[startAddr + 2]) << 16)
+        data = data ^ ((mask & self.mem[startAddr + 3]) << 24)
+        
+        # print(f"Mem: {[self.mem[i] for i in range(20)]}")
+        # print(f"StartAddr: {startAddr}-{startAddr+3}")
+
+        return data
 
     def load_bin_str(self, addr):
         arr = self.load(addr)
