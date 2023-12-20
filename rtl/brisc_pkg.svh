@@ -15,6 +15,7 @@ package brisc_pkg;
   parameter integer unsigned ADDRESS_BITS = 32;
   parameter integer unsigned OPCODE_BITS = 7;
   parameter integer unsigned CACHE_LINE_LEN = 128;
+  parameter integer unsigned CACHE_LINES = 4;
 
   parameter logic [XLEN-1:0] PC_BOOT = 'h00001000;
   parameter logic [XLEN-1:0] PC_EXCEPT = 'h00002000;

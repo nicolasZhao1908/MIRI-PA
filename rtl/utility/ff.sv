@@ -8,7 +8,7 @@ module ff
   import brisc_pkg::*;
 #(
     parameter integer unsigned WIDTH = XLEN,
-    parameter bit RESET_VALUE = 1'b0
+    parameter [WIDTH-1:0] RESET_VALUE = 0
 ) (
     input logic clk,
     input logic enable,
@@ -16,9 +16,13 @@ module ff
     input logic [WIDTH - 1:0] inp,
     output logic [WIDTH - 1:0] out
 );
+  initial begin
+    assign out = RESET_VALUE;
+  end
+
   always_ff @(posedge clk) begin
     if (reset) begin
-       out <= {WIDTH{RESET_VALUE}};
+       out <= RESET_VALUE;
     end
     else if (enable) begin
         out <= inp;
@@ -32,7 +36,7 @@ endmodule
 module nff #(
     parameter integer unsigned N = 3,
     parameter integer unsigned WIDTH = 1,
-    parameter bit RESET_VALUE = 1'b0
+    parameter integer unsigned RESET_VALUE = 0
 ) (
     input logic clk,
     input logic enable,

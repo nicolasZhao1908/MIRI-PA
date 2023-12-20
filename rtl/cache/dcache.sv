@@ -279,13 +279,13 @@ module dcache #(
     output logic [DATA_WIDTH-1:0] data_out
 );
 
-  localparam integer unsigned CACHE_LINE_BIT_OFFSET = $clog2(CACHE_LINE_WIDTH / DATA_WIDTH);
+  localparam integer unsigned CACHE_LINE_BIT_OFFSET = $clog2(CACHE_LINE_WIDTH / DATA_WIDTH  * 4);
 
   logic [ADDRESS_WIDTH - CACHE_LINE_BIT_OFFSET - 1:0] truncated_address_for_cache;
   logic [CACHE_LINE_BIT_OFFSET-1:0] part_in_cacheline;
 
   assign truncated_address_for_cache = addr[ADDRESS_WIDTH-1:CACHE_LINE_BIT_OFFSET];
-  assign part_in_cacheline = addr[CACHE_LINE_BIT_OFFSET-1+2:2];
+  assign part_in_cacheline = addr[CACHE_LINE_BIT_OFFSET-1:2];
 
   logic write_in_cache_unit;
 

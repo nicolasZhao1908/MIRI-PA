@@ -38,7 +38,7 @@ module cache #(
   logic valid_from_lines[CACHE_LINES];
 
 
-  demux #(.CTRL(SET_BIT_WIDTH), .WIDTH(1)) enable_demux (
+  demux #(.CTRL(SET_BIT_WIDTH), .DATA_WIDTH(1)) enable_demux (
       .inp(read_write),
       .ctrl(set),
       .out(write_enables)

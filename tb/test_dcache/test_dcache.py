@@ -33,6 +33,9 @@ async def test_defined_suit(dut):
         getTestLine(0, 4 * 0, 0, 0),
         getTestLine(0, 4 * 1, 0, 0),  # 22
         getTestLine(0, 4 * 2, 0, 0),
+        getTestLine(0, 4 * 2, 0, 0),
+        getTestLine(0, 4 * 2, 0, 0),
+        getTestLine(0, 4 * 2, 0, 0),
         getTestLine(0, 4 * 3, 0, 0),
         getTestLine(0, 4 * 5, 0, 0),  # 25
         getTestLine(0, 4 * 6, 0, 0),
@@ -66,6 +69,7 @@ async def wait_cycle(dut):
     await Timer(1, units="ns")
     dut.clk.value = 1
     await Timer(1, units="ns")
+
 
 async def test_cache(dut, suit):
     mem = Memory()
