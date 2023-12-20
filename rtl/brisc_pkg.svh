@@ -6,6 +6,7 @@
 package brisc_pkg;
   parameter integer unsigned ILEN = 32;
   parameter integer unsigned XLEN = 32;
+  parameter integer unsigned NUM_REG = 32;
   parameter integer unsigned MEM_REQ_DELAY = 5;
   parameter integer unsigned MEM_RESP_DELAY = 5;
   parameter integer unsigned MUL_DELAY = 5;
@@ -18,7 +19,7 @@ package brisc_pkg;
   parameter logic [XLEN-1:0] PC_BOOT = 'h00001000;
   parameter logic [XLEN-1:0] PC_EXCEPT = 'h00002000;
 
-  // in RISC-V the modes are:
+  // In RISC-V the modes are:
   // 00 User
   // 01 Supervisor
   // 10 Reserved

@@ -2,7 +2,7 @@
 `include "utility/cache_line.sv"
 `include "utility/demux.sv"
 
-module fully_associative_cache #(
+module cache #(
     parameter integer unsigned SET_BIT_WIDTH = 2,
     parameter integer unsigned INPUT_WIDTH = 32,
     parameter integer unsigned DATA_WIDTH = 32
@@ -38,9 +38,7 @@ module fully_associative_cache #(
   logic valid_from_lines[CACHE_LINES];
 
 
-
-// TODO: the parameters here are in wrong order no? First comes the control and then the width
-  demux #(SET_BIT_WIDTH, 1) enable_demux (
+  demux #(.CTRL(SET_BIT_WIDTH), .WIDTH(1)) enable_demux (
       .inp(read_write),
       .ctrl(set),
       .out(write_enables)

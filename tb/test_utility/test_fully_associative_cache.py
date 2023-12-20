@@ -101,11 +101,11 @@ def swap_endian(n, width=32):
 
 
 ############ MAKE FILES DATA ############
-# VERILOG_SOURCES += $(PWD)/rtl/utility/fully_associative_cache.sv
+# VERILOG_SOURCES += $(PWD)/rtl/utility/cache.sv
 #
 #
 # # TOPLEVEL is the name of the toplevel module in your Verilog or VHDL file
-# TOPLEVEL = fully_associative_cache
+# TOPLEVEL = cache
 #
 # # MODULE is the basename of the Python test file
 # MODULE = tb.test_utility.test_fully_associative_cache

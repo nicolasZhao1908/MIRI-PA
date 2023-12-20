@@ -1,3 +1,0 @@
-module sb #()();
-    
-endmodule

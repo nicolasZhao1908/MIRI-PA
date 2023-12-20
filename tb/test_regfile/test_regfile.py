@@ -12,7 +12,7 @@ async def test_write_read(dut):
         expected_value = random.randint(0, int("0xFFFFFFFF", 16))
         dut.write_data.value = expected_value
         write_addr = random.randint(1, 31)
-        dut.rsd_addr.value = write_addr
+        dut.rd_addr.value = write_addr
         dut.enable.value = random.randint(0, 1)
         await RisingEdge(dut.clk)
         # write performed

@@ -11,7 +11,7 @@ module regfile
 
     input logic [RegBits-1:0] rs1_addr,
     input logic [RegBits-1:0] rs2_addr,
-    input logic [RegBits-1:0] rsd_addr,
+    input logic [RegBits-1:0] rd_addr,
 
     input logic [REG_LENGTH-1:0] write_data,
     input logic enable,
@@ -25,7 +25,7 @@ module regfile
 
   always_comb begin : set_enable_and_read
     for (integer unsigned i = 0; i < REG_NUM; i++) begin
-      assign enables[i] = (rsd_addr == 5'(i)) ? enable : 1'b0;
+      assign enables[i] = (rd_addr == 5'(i)) ? enable : 1'b0;
     end
     assign rs1_data = regs[rs1_addr];
     assign rs2_data = regs[rs2_addr];

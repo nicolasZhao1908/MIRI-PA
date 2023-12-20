@@ -1,4 +1,4 @@
-`include "utility/fully_associative_cache.sv"
+`include "utility/cache.sv"
 `include "utility/memory.sv"
 `include "cache/arbiter.sv"
 
@@ -260,7 +260,7 @@ module dcache #(
   logic [CACHE_LINE_WIDTH-1:0] data_out_cache_unit;
 
 
-  fully_associative_cache #(
+  cache #(
       .SET_BIT_WIDTH(SET_BIT_WIDTH),
       .INPUT_WIDTH(ADDRESS_WIDTH - CACHE_LINE_BIT_OFFSET),
       .DATA_WIDTH(CACHE_LINE_WIDTH)

@@ -1,6 +1,6 @@
 `include "brisc_pkg.svh"
 
-module ex
+module ex_stage
   import brisc_pkg::*;
 (
     input logic clk,
