@@ -1,3 +1,6 @@
+`ifndef CACHELINE_SV
+`define CACHELINE_SV
+
 `include "utility/ff.sv"
 
 module cache_line #(
@@ -43,3 +46,5 @@ module cache_line #(
   );
 
 endmodule
+
+`endif
