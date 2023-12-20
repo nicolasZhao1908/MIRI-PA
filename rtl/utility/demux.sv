@@ -30,7 +30,7 @@ module demux #(
 
   generate
     for (i = 0; i < 2 ** CTRL; i = i + 1) begin : g_dm_out
-      assign out[i] = ctrl == i ? inp : 1'b0;
+      assign out[i] = ctrl == i ? inp : {DATA_WIDTH{1'b0}};
     end
   endgenerate
 

@@ -7,11 +7,13 @@ module arbiter #(
     input logic clk,
     input logic req_1,
     input logic store_to_mem_1,
+    input logic store_word_1,
     input logic [ADDRESS_WIDTH-1:0] addr_to_mem_1,
     input logic [DATA_WIDTH-1:0] data_to_mem_1,
 
     input logic req_2,
     input logic store_to_mem_2,
+    input logic store_word_2,
     input logic [ADDRESS_WIDTH-1:0] addr_to_mem_2,
     input logic [DATA_WIDTH-1:0] data_to_mem_2,
 
@@ -21,6 +23,7 @@ module arbiter #(
 
     output logic request_to_mem,
     output logic store_to_mem,
+    output logic store_word_to_mem,
     output logic [ADDRESS_WIDTH-1:0] addr_to_mem,
     output logic [DATA_WIDTH-1:0] data_to_mem
 );
@@ -30,7 +33,9 @@ module arbiter #(
 
   assign gr2 = req_2 & (ff_out | ~req_1);
 
-  ff req2_running (
+  ff #(
+    .WIDTH(1)
+  ) req2_running (
       .clk(clk),
       .enable(1'b1),
       .reset(1'b0),
@@ -80,4 +85,5 @@ module arbiter #(
   assign store_to_mem = grant_1 ? store_to_mem_1 : store_to_mem_2;
   assign addr_to_mem = grant_1 ? addr_to_mem_1 : addr_to_mem_2;
   assign data_to_mem = grant_1 ? data_to_mem_1 : data_to_mem_2;
+  assign store_word_to_mem = grant_1 ? store_word_1 : store_word_2;
 endmodule
