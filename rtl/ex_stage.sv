@@ -6,56 +6,34 @@ module ex_stage
     input logic clk,
     input logic reset,  // high reset
     input logic stall_ex,
-    input logic [XLEN-1:0] rs1_data,
-    input logic [XLEN-1:0] rs2_data,
-    input logic [XLEN-1:0] rd_data,
-    input logic [XLEN-1:0] imm,
     input instr_e instr_in,
-    input instr_type_e instr_type,
+    input logic [XLEN-1:0] rs1_data_in,
+    input logic [XLEN-1:0] rs2_data_in,
+    input logic [REG_BITS-1:0] rd_in,
+    input logic [XLEN-1:0] imm_in,
+
     output logic b_taken,
     output logic [XLEN-1:0] alu_res,
-    output logic [XLEN-1:0] mul_res,
-    output instr_e instr_out
+    output instr_e instr_out,
+    output logic [REG_BITS-1:0] rd_out
 );
+  logic [XLEN-1:0] alu_res_w;
+  logic b_taken_w;
 
-  logic [4:0] instr_bus;
-  logic [XLEN-1:0] delayed_res;
-  logic [XLEN-1:0] src1, src2;
-
-  assign src1 = (instr_type == J) ? '0 : rs1_data;
-  assign src2 = (instr_type == R || instr_type == B) ? rs2_data : imm;
-
-
-  alu #(
-      .WIDTH(XLEN)
-  ) alu_unit (
-      .src1(src1),
-      .src2(src2),
+  alu alu_unit (
+      .rs1_data_in(rs1_data_in),
+      .rs2_data_in(rs2_data_in),
+      .imm_in(imm_in),
       .instr(instr_in),
-      .b_taken(b_taken),
-      .alu_res(alu_res)
+      .b_taken(b_taken_w),
+      .alu_res(alu_res_w)
   );
 
-  shift_reg #(
-      .WIDTH(XLEN),
-      .N(MUL_DELAY)
-  ) alu_res_delay (
-      .clk(clk),
-      .enable(stall_ex),
-      .reset(reset),
-      .data_in(alu_res),
-      .data_out(delayed_res)
-  );
-
-  shift_reg #(
-      .WIDTH(5),
-      .N(MUL_DELAY)
-  ) instr_delay (
-      .clk(clk),
-      .enable(stall_ex),
-      .reset(reset),
-      .data_in(instr_in),
-      .data_out(instr_bus)
-  );
+  always_ff @(posedge clk) begin
+    instr_out <= instr_in;
+    rd_out <= rd_in;
+    b_taken <= b_taken_w;
+    alu_res <= alu_res_w;
+  end
 
 endmodule

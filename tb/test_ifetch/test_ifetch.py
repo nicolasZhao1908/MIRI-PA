@@ -111,7 +111,7 @@ async def test_read_instr_from_mem(dut):
         print(f"PC Update: {dut.pc_update.value}")
         print(f"Current instruction: {dut.instr.value}")
         print(f"Cache hit: {dut.cache_hit.value}")
-        print(dut.cache.cacheUnit.set.value)
+        print(dut.cache.cache_unit.set.value)
         
         print("------------")
 
@@ -121,7 +121,6 @@ async def test_read_instr_from_mem(dut):
 
 
 
-# @cocotb.test()
-# async def test_stall(dut):
-#     return
-        
+@cocotb.test()
+async def test_stall(dut):
+    return

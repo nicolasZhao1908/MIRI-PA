@@ -1,6 +1,5 @@
 `include "brisc_pkg.svh"
-`include "cache/dcache.sv"
-`include "utility/ff.sv"
+
 module ifetch_stage
   import brisc_pkg::*;
 (
@@ -8,6 +7,7 @@ module ifetch_stage
     input logic reset,
     input logic stall_fetch,
     input logic b_taken,
+    input logic xcpt,
     input logic [ADDRESS_BITS-1:0] b_target,
 
     //For the cache:
@@ -33,12 +33,14 @@ module ifetch_stage
 
   logic pc_update;
   logic cache_hit;
+  logic [ILEN-1:0] instr_w;
 
-  assign pc_update = !stall_fetch;
-  assign pc_next   = b_taken ? b_target : pc_curr + 4;
+  assign pc_update = (~stall_fetch) & (~stall);
+  assign pc_next = xcpt ? PC_XCPT : (b_taken ? b_target : pc_curr + 4);
+  assign stall = !cache_hit;
 
   ff #(
-      .WIDTH(32),
+      .WIDTH(XLEN),
       .RESET_VALUE(PC_BOOT)
   ) pc (
       .clk(clk),
@@ -48,51 +50,48 @@ module ifetch_stage
       .out(pc_curr)
   );
 
-
-
-  // cache icache (
-  //     .clk(clk),
-  //     .read_write(1'b0),
-  //     .inp(pc_curr),
-  //     .data_in('0),
-  //     .valid_in(1'b1),
-  //     .hit(cache_hit),
-  //     .data_out(instr)
-  // );
-
-  dcache #( // Use DCache as ICache lol
-    .SET_BIT_WIDTH($clog2(CACHE_LINES)),
-    .ADDRESS_WIDTH(ADDRESS_BITS),
-    .DATA_WIDTH(XLEN),
-    .CACHE_LINE_WIDTH(CACHE_LINE_LEN)
+  dcache #(  // Use DCache as ICache lol
+      .SET_BIT_WIDTH($clog2(CACHE_LINES)),
+      .ADDRESS_WIDTH(ADDRESS_BITS),
+      .DATA_WIDTH(XLEN),
+      .CACHE_LINE_WIDTH(CACHE_LINE_LEN)
   ) cache (
-    .clk(clk),
-    .enable(1'b1),
-    .store(1'b0),
-    .addr(pc_curr),
-    .data_in({ADDRESS_BITS{1'b0}}), //Nothing to be stored in ICache
-    .word(1'b1), //Defines whether a word or a byte should be loaded or stored
+      .clk(clk),
+      .enable(1'b1),
+      .store(1'b0),
+      .addr(pc_curr),
+      .data_in({ADDRESS_BITS{1'b0}}),  //Nothing to be stored in ICache
+      .word(1'b1),  //Defines whether a word or a byte should be loaded or stored
 
-    //Arbiter input
-    .arbiter_grant(arbiter_grant),
+      //Arbiter input
+      .arbiter_grant(arbiter_grant),
 
-    //Mem inputs
-    .fill_data_from_mem(fill_data_from_mem),
-    .fill_data_from_mem_valid(fill_data_from_mem_valid),
+      //Mem inputs
+      .fill_data_from_mem(fill_data_from_mem),
+      .fill_data_from_mem_valid(fill_data_from_mem_valid),
 
-    //Mem outputs
-    .req_store_to_mem(),
-    .req_word_to_mem(),
-    .req_addr_to_mem(req_addr_to_mem),
-    .req_store_data_to_mem(),
+      //Mem outputs
+      .req_store_to_mem(),
+      .req_word_to_mem(),
+      .req_addr_to_mem(req_addr_to_mem),
+      .req_store_data_to_mem(),
 
-    //Arbiter outputs
-    .req_to_arbiter(req_to_arbiter),
+      //Arbiter outputs
+      .req_to_arbiter(req_to_arbiter),
 
-    //Cache outputs
-    .hit(cache_hit),
-    .data_out(instr)
+      //Cache outputs
+      .hit(cache_hit),
+      .data_out(instr_w)
   );
 
-  assign stall = !cache_hit;
+
+  ff #(
+      .WIDTH(ILEN)
+  ) instr_fetch (
+      .clk(clk),
+      .enable((~stall_fetch) & (~stall)),
+      .reset(reset),
+      .inp(instr_w),
+      .out(instr)
+  );
 endmodule

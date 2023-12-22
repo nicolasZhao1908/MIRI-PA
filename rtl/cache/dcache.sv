@@ -1,6 +1,4 @@
-`include "utility/cache.sv"
-`include "utility/memory.sv"
-`include "cache/arbiter.sv"
+`include "brisc_pkg.svh"
 
 module two_caches_arbiter_testonly #(
     parameter integer unsigned SET_BIT_WIDTH = 2,
@@ -154,14 +152,14 @@ module two_caches_arbiter_testonly #(
 
   //ADDITIONAL DEBUG STATEMENTS FOR MEM: , enables_out, strAndReq, controlAddr, mem_oi, cabels, data_out_out, evict_data_out
   //DEBUG
-  
-    // assign rg_out = {req_to_arbiter_1, grant_from_arbiter_1, req_to_arbiter_2, grant_from_arbiter_2};
-    // assign mem_resp = {req_to_mem_arb, valid_from_mem};
-    // assign arb2mem = req_store_data_to_mem_arb;
-    // assign mem2arb = fill_from_mem;
-    // assign arb2memAddr = req_addr_to_mem_arb;
-    // assign arb2memStr = req_store_to_mem_arb; 
-endmodule 
+
+  // assign rg_out = {req_to_arbiter_1, grant_from_arbiter_1, req_to_arbiter_2, grant_from_arbiter_2};
+  // assign mem_resp = {req_to_mem_arb, valid_from_mem};
+  // assign arb2mem = req_store_data_to_mem_arb;
+  // assign mem2arb = fill_from_mem;
+  // assign arb2memAddr = req_addr_to_mem_arb;
+  // assign arb2memStr = req_store_to_mem_arb; 
+endmodule
 
 module dcache_mem_testonly #(
     parameter integer unsigned SET_BIT_WIDTH = 2,
@@ -220,9 +218,9 @@ module dcache_mem_testonly #(
       .hit(hit),
       .req_word_to_mem(word_to_mem),
       .data_out(data_out)
-      
-    //   , .word_out_out(word_out_out)
-    //   , .data_out_cache_unit_o(data_out_cache_unit_o)
+
+      //   , .word_out_out(word_out_out)
+      //   , .data_out_cache_unit_o(data_out_cache_unit_o)
   );
 
   assign req_to_mem = arbiter_grant;
@@ -241,8 +239,8 @@ module dcache_mem_testonly #(
       .response_valid(valid_from_mem)
   );
 
-//   assign fillD = fill_from_mem;
-//   assign sendD = req_store_data_to_mem;
+  //   assign fillD = fill_from_mem;
+  //   assign sendD = req_store_data_to_mem;
 
 endmodule
 
@@ -257,7 +255,7 @@ module dcache #(
     input logic store,
     input logic [ADDRESS_WIDTH-1:0] addr,
     input logic [DATA_WIDTH-1:0] data_in,
-    input logic word, //Defines whether a word or a byte should be loaded or stored
+    input logic word,  //Defines whether a word or a byte should be loaded or stored
 
     //Arbiter input
     input logic arbiter_grant,
@@ -279,7 +277,7 @@ module dcache #(
     output logic [DATA_WIDTH-1:0] data_out
 );
 
-  localparam integer unsigned CACHE_LINE_BIT_OFFSET = $clog2(CACHE_LINE_WIDTH / DATA_WIDTH  * 4);
+  localparam integer unsigned CACHE_LINE_BIT_OFFSET = $clog2(CACHE_LINE_WIDTH / DATA_WIDTH * 4);
 
   logic [ADDRESS_WIDTH - CACHE_LINE_BIT_OFFSET - 1:0] truncated_address_for_cache;
   logic [CACHE_LINE_BIT_OFFSET-1:0] part_in_cacheline;
@@ -297,7 +295,7 @@ module dcache #(
       .SET_BIT_WIDTH(SET_BIT_WIDTH),
       .INPUT_WIDTH(ADDRESS_WIDTH - CACHE_LINE_BIT_OFFSET),
       .DATA_WIDTH(CACHE_LINE_WIDTH)
-  ) cacheUnit (
+  ) cache_unit (
       .clk(clk),
       .read_write(write_in_cache_unit),
       .inp(truncated_address_for_cache),
@@ -308,8 +306,6 @@ module dcache #(
   );
 
   assign write_in_cache_unit = store | (arbiter_grant & fill_data_from_mem_valid & ~cache_unit_hit);
-
-
 
   assign req_to_arbiter = (~cache_unit_hit | store) & enable;
 
@@ -324,9 +320,9 @@ module dcache #(
   assign hit = (cache_unit_hit & ~store) | (store & arbiter_grant);
 
   logic [DATA_WIDTH-1:0] word_out;
-  assign word_out = data_out_cache_unit[part_in_cacheline*DATA_WIDTH +: DATA_WIDTH];
+  assign word_out = data_out_cache_unit[part_in_cacheline*DATA_WIDTH+:DATA_WIDTH];
   logic [1:0] byte_in_word;
   assign byte_in_word = addr[1:0];
 
-  assign data_out = word ? word_out : {{8 * 3{1'b0}}, word_out[byte_in_word * 8 +: 8]};
+  assign data_out = word ? word_out : {{8 * 3{1'b0}}, word_out[byte_in_word*8+:8]};
 endmodule

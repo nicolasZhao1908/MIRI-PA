@@ -1,6 +1,4 @@
-`include "utility/comparator.sv"
-`include "utility/cache_line.sv"
-`include "utility/demux.sv"
+`include "brisc_pkg.svh"
 
 module cache #(
     parameter integer unsigned SET_BIT_WIDTH = 2,
@@ -20,7 +18,6 @@ module cache #(
     //,output logic [1:0] set_out
     //,output logic [INPUT_WIDTH - SET_BIT_WIDTH - 1:0] tag_out
 );
-
 
   localparam integer unsigned CACHE_LINES = 2 ** SET_BIT_WIDTH;
   localparam integer unsigned TAG_WIDTH = INPUT_WIDTH - SET_BIT_WIDTH;

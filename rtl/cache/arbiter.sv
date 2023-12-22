@@ -1,4 +1,4 @@
-`include "utility/ff.sv"
+`include "brisc_pkg.svh"
 
 module arbiter #(
     parameter integer unsigned ADDRESS_WIDTH = 32,

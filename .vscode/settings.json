@@ -1,0 +1,9 @@
+{
+    "C_Cpp.default.configurationProvider": "ms-vscode.makefile-tools",
+    "verilog.linting.linter": "verilator",
+    "verilog.linting.verilator.includePath": [
+        "rtl/cache",
+        "rtl/utility",
+        "rtl"
+    ]
+}

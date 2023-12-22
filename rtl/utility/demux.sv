@@ -1,5 +1,4 @@
-`ifndef DEMUX_SV
-`define DEMUX_SV
+`include "brisc_pkg.svh"
 
 module demux_test (
     input logic [1 - 1:0] inp,
@@ -35,5 +34,3 @@ module demux #(
   endgenerate
 
 endmodule
-
-`endif

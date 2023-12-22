@@ -4,21 +4,22 @@
 `timescale 1ns / 1ps
 
 package brisc_pkg;
-  parameter integer unsigned ILEN = 32;
-  parameter integer unsigned XLEN = 32;
-  parameter integer unsigned NUM_REG = 32;
-  parameter integer unsigned MEM_REQ_DELAY = 5;
-  parameter integer unsigned MEM_RESP_DELAY = 5;
-  parameter integer unsigned MUL_DELAY = 5;
-  parameter integer unsigned BYTE_LEN = 8;
-  parameter integer unsigned WORLD_LEN = 32;
-  parameter integer unsigned ADDRESS_BITS = 32;
-  parameter integer unsigned OPCODE_BITS = 7;
-  parameter integer unsigned CACHE_LINE_LEN = 128;
-  parameter integer unsigned CACHE_LINES = 4;
+  parameter int unsigned ILEN = 32;
+  parameter int unsigned XLEN = 32;
+  parameter int unsigned NUM_REG = 32;
+  parameter int unsigned MEM_REQ_DELAY = 5;
+  parameter int unsigned MEM_RESP_DELAY = 5;
+  parameter int unsigned MUL_DELAY = 5;
+  parameter int unsigned BYTE_LEN = 8;
+  parameter int unsigned WORLD_LEN = 32;
+  parameter int unsigned ADDRESS_BITS = 32;
+  parameter int unsigned OPCODE_BITS = 7;
+  parameter int unsigned CACHE_LINE_LEN = 128;
+  parameter int unsigned CACHE_LINES = 4;
+  parameter int unsigned REG_BITS = $clog2(NUM_REG);
 
   parameter logic [XLEN-1:0] PC_BOOT = 'h00001000;
-  parameter logic [XLEN-1:0] PC_EXCEPT = 'h00002000;
+  parameter logic [XLEN-1:0] PC_XCPT = 'h00002000;
 
   // In RISC-V the modes are:
   // 00 User
@@ -56,20 +57,19 @@ package brisc_pkg;
     JAL  = 5'b01100
   } instr_e;
 
-  typedef enum logic [OPCODE_BITS-1:0] {
-    // SUB, ADD, MUL, AND, OR, XOR
-    OPCODE_ALU = 7'b0110011,
-    // ADDI
-    OPCODE_IMM = 7'b0010011,
-    // LW, LB
-    OPCODE_LOAD = 7'b0000011,
-    // SW, SB
-    OPCODE_STORE = 7'b0100011,
-    // BEQ
-    OPCODE_BRANCH = 7'b1100011,
-    // JAL
-    OPCODE_JUMP = 7'b1101111
-  } opcode_e;
+  // SUB, ADD, MUL, AND, OR, XOR
+  parameter logic [OPCODE_BITS-1:0] OPCODE_ALU = 7'b0110011;
+  // ADDI
+  parameter logic [OPCODE_BITS-1:0] OPCODE_IMM = 7'b0010011;
+  // LW, LB
+  parameter logic [OPCODE_BITS-1:0] OPCODE_LOAD = 7'b0000011;
+  // SW, SB
+  parameter logic [OPCODE_BITS-1:0] OPCODE_STORE = 7'b0100011;
+  // BEQ
+  parameter logic [OPCODE_BITS-1:0] OPCODE_BRANCH = 7'b1100011;
+  // JAL
+  parameter logic [OPCODE_BITS-1:0] OPCODE_JUMP = 7'b1101111;
+
 
   parameter logic [6:0] FUNCT7_MUL = 7'b0000001;
   parameter logic [2:0] FUNCT3_MUL = 3'b000;

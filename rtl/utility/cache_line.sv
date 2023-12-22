@@ -1,7 +1,4 @@
-`ifndef CACHELINE_SV
-`define CACHELINE_SV
-
-`include "utility/ff.sv"
+`include "brisc_pkg.svh"
 
 module cache_line #(
     parameter integer unsigned TAG_WIDTH  = 30,
@@ -24,7 +21,7 @@ module cache_line #(
       .enable(write),
       .inp(valid_in),
       .out(valid_out),
-      .reset()
+      .reset('0)
   );
   ff #(
       .WIDTH(TAG_WIDTH)
@@ -33,7 +30,7 @@ module cache_line #(
       .enable(write),
       .inp(tag_in),
       .out(tag_out),
-      .reset()
+      .reset('0)
   );
   ff #(
       .WIDTH(DATA_WIDTH)
@@ -42,9 +39,7 @@ module cache_line #(
       .enable(write),
       .inp(data_in),
       .out(data_out),
-      .reset()
+      .reset('0)
   );
 
 endmodule
-
-`endif

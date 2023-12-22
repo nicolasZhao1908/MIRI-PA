@@ -4,11 +4,12 @@ PWD=$(shell pwd)
 ROOT_DIR=$(PWD)/../..
 TB_DIR=$(ROOT_DIR)/tb
 RTL_DIR=$(ROOT_DIR)/rtl
+IARG=-I$(RTL_DIR) -I$(RTL_DIR)/utility -I$(RTL_DIR)/cache
 
 export PYTHONPATH:=$(TB_DIR)/models:$(PYTHONPATH)
 VERILOG_SOURCES=$(RTL_DIR)/regfile.sv
 
-EXTRA_ARGS+=--trace-fst --trace-structs -I$(RTL_DIR)
+EXTRA_ARGS+=--trace-fst --trace-structs $(IARG)
 
 TOPLEVEL=regfile
 MODULE=test_regfile

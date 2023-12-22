@@ -1,6 +1,4 @@
-`include "utility/ff.sv"
-`include "utility/demux.sv"
-`include "utility/comparator"
+`include "brisc_pkg.svh"
 
 module memory #(
     parameter integer unsigned FILL_DATA_WIDTH = 128,
@@ -19,7 +17,7 @@ module memory #(
     output logic [FILL_DATA_WIDTH-1:0] fill_data,
     output logic response_valid
 
-    
+
     // ,output logic [0:0] enables_o [512]
     // ,output logic [STORE_DATA_WIDTH-1:0] data_out_out [128*4]
     // ,output logic [31:0] evictD
@@ -31,7 +29,7 @@ module memory #(
 );
   //TODO NO RESET DEFINED! reset
 
-  localparam integer unsigned CONTROL_BITS_FOR_FF_SELECTION = $clog2(SPACES);
+  localparam integer unsigned ControlBits = $clog2(SPACES);
   localparam integer unsigned FFperWord = 32 / STORE_DATA_WIDTH;
 
   logic [0:0] enables[SPACES];
@@ -42,34 +40,34 @@ module memory #(
   logic [STORE_DATA_WIDTH-1:0] data_out[SPACES];
 
   demux #(
-      .CTRL(CONTROL_BITS_FOR_FF_SELECTION)
+      .CTRL(ControlBits)
   ) enable_demux_store_byte (
-      .inp(store & req),
-      .ctrl(address[CONTROL_BITS_FOR_FF_SELECTION-1:0]),
-      .out(enables_byte)
+      .inp (store & req),
+      .ctrl(address[ControlBits-1:0]),
+      .out (enables_byte)
   );
 
   demux #(
-      .CTRL(CONTROL_BITS_FOR_FF_SELECTION - $clog2(FFperWord)),
+      .CTRL(ControlBits - $clog2(FFperWord)),
       .DATA_WIDTH(FFperWord)
-  ) enable_demux_store_word(
-      .inp({FFperWord{store & req}}),
-      .ctrl(address[CONTROL_BITS_FOR_FF_SELECTION - 1:$clog2(FFperWord)]),
-      .out(enables_word_raw)
+  ) enable_demux_store_word (
+      .inp ({FFperWord{store & req}}),
+      .ctrl(address[ControlBits-1:$clog2(FFperWord)]),
+      .out (enables_word_raw)
   );
 
 
 
   genvar ienables;
   generate
-    for(ienables = 0; ienables < SPACES; ienables++) begin : gen_arraymapping_enables
-      assign enables_word[ienables] = enables_word_raw[ienables / FFperWord][ienables % FF_PER_LINE];
+    for (ienables = 0; ienables < SPACES; ienables++) begin : gen_arraymapping_enables
+      assign enables_word[ienables] = enables_word_raw[ienables/FFperWord][ienables%FF_PER_LINE];
     end
   endgenerate
 
   assign enables = storeWord ? enables_word : enables_byte;
   // assign enables_o = enables;
-  
+
   logic [FFperWord * STORE_DATA_WIDTH-1:0] internal_evict_data;
   assign internal_evict_data = storeWord ? evict_data : {FFperWord{evict_data[STORE_DATA_WIDTH - 1:0]}};
 
@@ -77,17 +75,17 @@ module memory #(
 
   genvar i;
   genvar wordi;
-  generate //Main memory
+  generate  //Main memory
     for (i = 0; i < SPACES / FFperWord; i++) begin : all_ff
-      for(wordi = 0; wordi < FFperWord; wordi++) begin : word_ff
+      for (wordi = 0; wordi < FFperWord; wordi++) begin : word_ff
         ff #(
             .WIDTH(STORE_DATA_WIDTH)
         ) flippyFloppy (
             .clk(clk),
-            .enable(enables[i * FFperWord + wordi]),
+            .enable(enables[i*FFperWord+wordi]),
             .reset(1'b0),
-            .inp(internal_evict_data[(wordi + 1) * STORE_DATA_WIDTH - 1:wordi * STORE_DATA_WIDTH]),
-            .out(data_out[i * FFperWord + wordi])
+            .inp(internal_evict_data[(wordi+1)*STORE_DATA_WIDTH-1:wordi*STORE_DATA_WIDTH]),
+            .out(data_out[i*FFperWord+wordi])
         );
       end
       //DEBUG assign enables_o[i] = enables[i][0:0];
@@ -114,8 +112,7 @@ module memory #(
   assign valid_out = req & ~store;
 
   logic [FILL_DATA_WIDTH:0] delayed_result;
-  logic reset_bus_1_to_n;
-  logic reset_bus_1;
+  logic reset_bus;
 
   nff #(
       .N(DATA_TRANSFER_TIME),
@@ -123,23 +120,21 @@ module memory #(
   ) long_way_back (
       .clk(clk),
       .enable(1'b1),
-      .reset_1(reset_bus_1),
-      .reset_1_to_N(reset_bus_1_to_n),
+      .reset(reset_bus),
       .inp({valid_out, lines_out[selected_line]}),
       .out(delayed_result)
   );
 
   assign fill_data = delayed_result[FILL_DATA_WIDTH-1:0];
   assign response_valid = delayed_result[FILL_DATA_WIDTH];
-  assign reset_bus_1_to_n = delayed_result[FILL_DATA_WIDTH];
-  assign reset_bus_1 = reset_bus_1_to_n;  // & ~req
+  assign reset_bus = delayed_result[FILL_DATA_WIDTH];
 
 
   //DEBUG
   /*
     assign data_out_out = data_out;
     assign stAndReq = store & req;
-    assign ctrAddr = address[CONTROL_BITS_FOR_FF_SELECTION-1:0];
+    assign ctrAddr = address[ControlBits-1:0];
     assign mem_o_isnt ={valid_out, lines_out[selected_line]};
     assign evict_data_out = evict_data;
     */
