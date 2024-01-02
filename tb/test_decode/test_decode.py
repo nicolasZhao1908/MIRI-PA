@@ -1,26 +1,24 @@
-from clock import BRiscClock
 import random
+
 import cocotb
+from clock import BRiscClock
 
 
 @cocotb.test()
 async def test_store(dut):
     clock = BRiscClock(dut.clk)
     dut.reset.value = 0
-    dut.stall_decode.value = 0
-    dut.wb_opcode_in.value = 0b0110011  # OPCODE_ALU
-    dut.wb_data_in.value = 1000
+    dut.stall_in.value = 0
+    dut.result_WB_in.value = 1000
     dut.wb_rd_in.value = 0b00010
 
     await clock.tick()
 
-    dut.wb_opcode_in.value = 0b0110011  # OPCODE_ALU
-    dut.wb_data_in.value = 100
+    dut.result_WB_in.value = 100
     dut.wb_rd_in.value = 0b00011
 
     await clock.tick()
 
-    dut.wb_opcode_in.value = 0b1100011  # OPCODE STORE
     dut.instr_in.value = create_store(0b00010, 0b00000, 0b1010, "w")
 
     await clock.tick()
@@ -28,7 +26,6 @@ async def test_store(dut):
     assert dut.src1.value == 0
     assert dut.rs2_data_out.value == 1000
 
-    dut.wb_opcode_in.value = 0b1100011  # OPCODE STORE
     dut.instr_in.value = create_store(0b00011, 0b00010, 0b1010, "w")
 
     await clock.tick()
@@ -41,14 +38,13 @@ async def test_store(dut):
 async def test_alu(dut):
     clock = BRiscClock(dut.clk)
     dut.reset.value = 0
-    dut.stall_decode.value = 0
-    dut.wb_opcode_in.value = 0b0110011  # OPCODE_ALU
-    dut.wb_data_in.value = 1
-    dut.wb_rd_in.value = 0b00010
+    dut.stall_in.value = 0
+    dut.result_WB_in.value = 1
+    dut.rd_WB_in.value = 0b00010
 
     await clock.tick()
 
-    dut.wb_data_in.value = 2
+    dut.result_WB_in.value = 2
     dut.wb_rd_in.value = 0b00011
 
     await clock.tick()
@@ -63,9 +59,8 @@ async def test_alu(dut):
 async def test_imm(dut):
     clock = BRiscClock(dut.clk)
     dut.reset.value = 0
-    dut.stall_decode.value = 0
-    dut.wb_opcode_in.value = 0b0110011  # OPCODE_ALU
-    dut.wb_data_in.value = 100
+    dut.stall_in.value = 0
+    dut.result_WB_in.value = 100
     dut.wb_rd_in.value = 0b00011
 
     await clock.tick()
@@ -82,7 +77,7 @@ async def test_imm(dut):
 async def test_jump(dut):
     clock = BRiscClock(dut.clk)
     dut.reset.value = 0
-    dut.stall_decode.value = 0
+    dut.stall_in.value = 0
     await clock.tick()
 
     dut.instr_in.value = create_jump(1000)

@@ -5,5 +5,9 @@
         "rtl/cache",
         "rtl/utility",
         "rtl"
+    ],
+    "pylint.cwd": "${workspaceFolder}/tb/models",
+    "pylint.args": [
+        "--disable=E1120,C0114,C0116"
     ]
 }

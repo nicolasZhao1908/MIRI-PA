@@ -69,15 +69,16 @@ module memory #(
   // assign enables_o = enables;
 
   logic [FFperWord * STORE_DATA_WIDTH-1:0] internal_evict_data;
-  assign internal_evict_data = storeWord ? evict_data : {FFperWord{evict_data[STORE_DATA_WIDTH - 1:0]}};
+  assign internal_evict_data = storeWord ?
+                              evict_data : {FFperWord{evict_data[STORE_DATA_WIDTH - 1:0]}};
 
   // assign evictD = internal_evict_data;
 
   genvar i;
   genvar wordi;
   generate  //Main memory
-    for (i = 0; i < SPACES / FFperWord; i++) begin : all_ff
-      for (wordi = 0; wordi < FFperWord; wordi++) begin : word_ff
+    for (i = 0; i < SPACES / FFperWord; i++) begin : g_all_ff
+      for (wordi = 0; wordi < FFperWord; wordi++) begin : g_word_ff
         ff #(
             .WIDTH(STORE_DATA_WIDTH)
         ) flippyFloppy (
@@ -103,7 +104,8 @@ module memory #(
   generate
     for (i = 0; i < LINES; i++) begin : g_line
       for (i2 = 0; i2 < FF_PER_LINE; i2++) begin : g_ff_line
-        assign lines_out[i][(i2 + 1) * STORE_DATA_WIDTH - 1 : i2 * STORE_DATA_WIDTH] = data_out[i * FF_PER_LINE + i2];
+        assign lines_out[i][(i2 + 1) * STORE_DATA_WIDTH - 1 : i2 * STORE_DATA_WIDTH] =
+              data_out[i * FF_PER_LINE + i2];
       end
     end
   endgenerate

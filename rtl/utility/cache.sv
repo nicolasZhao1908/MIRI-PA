@@ -1,9 +1,11 @@
 `include "brisc_pkg.svh"
 
-module cache #(
+module cache
+  import brisc_pkg::*;
+#(
     parameter integer unsigned SET_BIT_WIDTH = 2,
     parameter integer unsigned INPUT_WIDTH = 32,
-    parameter integer unsigned DATA_WIDTH = 32
+    parameter integer unsigned DATA_WIDTH = XLEN
 ) (
     input logic clk,
     input logic read_write,
@@ -35,10 +37,13 @@ module cache #(
   logic valid_from_lines[CACHE_LINES];
 
 
-  demux #(.CTRL(SET_BIT_WIDTH), .DATA_WIDTH(1)) enable_demux (
-      .inp(read_write),
+  demux #(
+      .CTRL(SET_BIT_WIDTH),
+      .DATA_WIDTH(1)
+  ) enable_demux (
+      .inp (read_write),
       .ctrl(set),
-      .out(write_enables)
+      .out (write_enables)
   );
 
   genvar i;  //Generate the cachelines

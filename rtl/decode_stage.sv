@@ -5,109 +5,130 @@ module decode_stage
 (
     input logic clk,
     input logic reset,
-    input logic stall_decode,
+    input logic stall_in,
+    input logic flush_in,
     input logic [ILEN-1:0] instr_in,
-    input logic [OPCODE_BITS-1:0] opcode_wb_in,
-    input logic [XLEN-1:0] data_wb_in,
-    input logic [REG_BITS-1:0] rd_wb_in,
-    input logic rf_enable,
+    input logic [XLEN-1:0] pc_in,
+
+    // from WB stage
+    input logic [XLEN-1:0] result_WB_in,
+    input logic [REG_BITS-1:0] rd_WB_in,
+    input logic reg_write_WB_in,
+
+    // for JUMP
+    input logic [XLEN-1:0] pc_plus4_in,
 
     output logic [REG_BITS-1:0] rd_out,
+    output logic [REG_BITS-1:0] rs1_out,
+    output logic [REG_BITS-1:0] rs2_out,
+    output logic [XLEN-1:0] pc_out,
     output logic [XLEN-1:0] rs1_data_out,
     output logic [XLEN-1:0] rs2_data_out,
     output logic [XLEN-1:0] imm_out,
-    output logic xcpt,
-    output instr_e instr_out
+    output logic [XLEN-1:0] pc_plus4_out,
+
+    // ctrl signals
+    output logic reg_write_out,
+    output result_src_e result_src_out,
+    output logic mem_write_out,
+    output logic is_branch_out,
+    output logic is_jump_out,
+    output alu_ctrl_e alu_ctrl_out,
+    output alu_src_e alu_src_out,
+    output mem_op_size_e mem_op_size_out,
+    output logic xcpt_out
 );
 
-  logic i_valid;
-  logic [XLEN-1:0] imm;
-  logic [REG_BITS-1:0] rs1;
-  logic [REG_BITS-1:0] rs2;
-  logic [REG_BITS-1:0] rd;
-  logic [XLEN-1:0] rs2_data;
-  logic [XLEN-1:0] imm_out_w;
-  instr_e instr_out_w;
-  logic [XLEN-1:0] rs1_data_out_w;
-  logic [XLEN-1:0] rs2_data_out_w;
 
-  initial begin
-    assign xcpt = 0;
-  end
+  logic [ILEN-1:0] instr_w;
+  logic [XLEN-1:0] imm_w;
 
+  imm_src_e imm_src_w;
 
-  idecoder idec (
-      .instr(instr_in),
-      .rs1(rs1),
-      .rs2(rs2),
-      .rd(rd),
-      .imm(imm_out_w),
-      .out_instr(instr_out_w),
-      .i_valid(i_valid)
+  ctrl ctrl_unit (
+      // IN
+      .funct3(instr_w[14:12]),
+      .funct7(instr_w[31:25]),
+      .opcode(instr_w[OPCODE_BITS-1:0]),
+      // OUT
+      .reg_write(reg_write_out),
+      .imm_src(imm_src_w),
+      .result_src(result_src_out),
+      .alu_src(alu_src_out),
+      .alu_ctrl(alu_ctrl_out),
+      .mem_write(mem_write_out),
+      .is_branch(is_branch_out),
+      .is_jump(is_jump_out),
+      .mem_op_size(mem_op_size_out),
+      .xcpt(xcpt_out)
   );
+  assign rs1_out = instr_w[19:15];
+  assign rs2_out = instr_w[24:20];
+  assign rd_out = instr_w[11:7];
 
   regfile rfile (
+      // IN
       .clk(clk),
       .reset(reset),
-      .rs1_addr(rs1),
-      .rs2_addr(rs2),
-      .write_data(data_wb_in),
-      .rd_addr(rd_wb_in),
-      .enable(rf_enable),
-      .rs1_data(rs1_data_out_w),
-      .rs2_data(rs2_data_out_w)
+      .rs1_addr(rs1_out),
+      .rs2_addr(rs2_out),
+      .write_data(result_WB_in),
+      .rd_addr(rd_WB_in),
+      .enable(reg_write_WB_in),
+      // OUT
+      .rs1_data(rs1_data_out),
+      .rs2_data(rs2_data_out)
   );
 
-  assign xcpt = !i_valid;
+  always_comb begin
+    unique case (imm_src_w)
+      I_IMM: begin
+        assign imm_out = {{20{instr_w[31]}}, instr_w[31:20]};
+      end
+      S_IMM: begin
+        assign imm_out = {{20{instr_w[31]}}, instr_w[31:25], instr_w[11:7]};
+      end
+      B_IMM: begin
+        assign imm_out = {{20{instr_w[31]}}, instr_w[7], instr_w[30:25], instr_w[11:8], 1'b0};
+      end
+      J_IMM: begin
+        assign imm_out = {{12{instr_w[31]}}, instr_w[19:12], instr_w[20], instr_w[30:21], 1'b0};
+      end
+      default: begin
+        assign imm_out = 'bx;  // undefined
+      end
+    endcase
+  end
 
   ff #(
-      .WIDTH(REG_BITS)
-  ) rd_decode (
+      .WIDTH(ILEN),
+      .RESET_VALUE(NOP)
+  ) instr_f_decode (
       .clk(clk),
-      .enable(~stall_decode),
-      .reset(reset),
-      .inp(rd),
-      .out(rd_out)
+      .enable(~stall_in),
+      .reset(flush_in | reset),
+      .inp(instr_in),
+      .out(instr_w)
   );
 
   ff #(
       .WIDTH(XLEN)
-  ) rs1_data_decode (
+  ) pc_curr_f_decode (
       .clk(clk),
-      .enable(~stall_decode),
-      .reset(reset),
-      .inp(rs1_data_out_w),
-      .out(rs1_data_out)
+      .enable(~stall_in),
+      .reset(flush_in | reset),
+      .inp(pc_in),
+      .out(pc_out)
   );
 
   ff #(
       .WIDTH(XLEN)
-  ) rs2_data_decode (
+  ) pc_plus4_f_decode (
       .clk(clk),
-      .enable(~stall_decode),
-      .reset(reset),
-      .inp(rs2_data_out_w),
-      .out(rs2_data_out)
-  );
-
-  ff #(
-      .WIDTH(XLEN)
-  ) imm_decode (
-      .clk(clk),
-      .enable(~stall_decode),
-      .reset(reset),
-      .inp(imm_out_w),
-      .out(imm_out)
-  );
-
-  ff #(
-      .WIDTH(5)
-  ) instr_decode (
-      .clk(clk),
-      .enable(~stall_decode),
-      .reset(reset),
-      .inp(instr_out_w),
-      .out(instr_out)
+      .enable(~stall_in | reset),
+      .reset(flush_in),
+      .inp(pc_plus4_in),
+      .out(pc_plus4_out)
   );
 
 endmodule

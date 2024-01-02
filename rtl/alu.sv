@@ -3,48 +3,32 @@
 module alu
   import brisc_pkg::*;
 (
-    input logic [XLEN-1:0] rs1_data_in,
-    input logic [XLEN-1:0] rs2_data_in,
-    input logic [XLEN-1:0] imm_in,
-    input instr_e instr,
-    output logic b_taken,
-    output logic [XLEN-1:0] alu_res
+    input logic [XLEN-1:0] src1,
+    input logic [XLEN-1:0] src2,
+    input alu_ctrl_e ctrl,
+    output logic zero,
+    output logic [XLEN-1:0] result
 );
 
   always_comb begin
-    assign b_taken = 1'b0;
-    assign alu_res = '0;
-    unique case (instr)
-      LW, LB, SW, SB, ADDI: begin
-        assign alu_res = rs1_data_in + imm_in;
-      end
+    unique case (ctrl)
       ADD: begin
-        assign alu_res = rs1_data_in + rs2_data_in;
-      end
-      BEQ: begin
-        assign b_taken = ((rs1_data_in - rs2_data_in) == '0);
+        assign result = src1 + src2;
       end
       SUB: begin
-        assign alu_res = rs1_data_in - rs2_data_in;
-      end
-      JAL: begin
-        assign b_taken = 1'b1;
-      end
-      XOR: begin
-        assign alu_res = rs1_data_in ^ rs2_data_in;
+        assign result = src1 - src2;
       end
       AND: begin
-        assign alu_res = rs1_data_in & rs2_data_in;
+        assign result = src1 & src2;
       end
       OR: begin
-        assign alu_res = rs1_data_in | rs2_data_in;
-      end
-      MUL: begin
-        assign alu_res = rs1_data_in * rs2_data_in;
+        assign result = src1 | src2;
       end
       default: begin
-        // Invalid instructions are handled by the decode stage
+        // all possible bits for ctrl are covered
       end
     endcase
+
+    assign zero = result == '0;
   end
 endmodule

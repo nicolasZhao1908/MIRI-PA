@@ -1,5 +1,87 @@
 `include "brisc_pkg.svh"
 
+module dcache  import brisc_pkg::*; #(
+    parameter integer unsigned SET_BIT_WIDTH = 2,
+    parameter integer unsigned ADDRESS_WIDTH = 32,
+    parameter integer unsigned CACHE_LINE_WIDTH = 128
+) (
+    input logic clk,
+    input logic enable,
+    input logic store,
+    input logic [ADDRESS_WIDTH-1:0] addr,
+    input logic [XLEN-1:0] data_in,
+    input logic word,  //Defines whether a word or a byte should be loaded or stored
+
+    //Arbiter input
+    input logic arbiter_grant,
+
+    //Mem inputs
+    input logic [CACHE_LINE_WIDTH-1:0] fill_data_from_mem,
+    input logic fill_data_from_mem_valid,
+
+    //Mem outputs
+    output logic req_store_to_mem,
+    output logic req_word_to_mem,
+    output logic [ADDRESS_WIDTH-1:0] req_addr_to_mem,
+    output logic [XLEN-1:0] req_store_data_to_mem,
+
+    //Arbiter outputs
+    output logic req_to_arbiter,
+
+    output logic hit,
+    output logic [XLEN-1:0] data_out
+);
+
+  localparam integer unsigned CACHE_LINE_BIT_OFFSET = $clog2(CACHE_LINE_WIDTH / XLEN * 4);
+
+  logic [ADDRESS_WIDTH - CACHE_LINE_BIT_OFFSET - 1:0] truncated_address_for_cache;
+  logic [CACHE_LINE_BIT_OFFSET-1:0] part_in_cacheline;
+
+  assign truncated_address_for_cache = addr[ADDRESS_WIDTH-1:CACHE_LINE_BIT_OFFSET];
+  assign part_in_cacheline = addr[CACHE_LINE_BIT_OFFSET-1:2];
+
+  logic write_in_cache_unit;
+
+  logic cache_unit_hit;
+  logic [CACHE_LINE_WIDTH-1:0] data_out_cache_unit;
+
+
+  cache #(
+      .SET_BIT_WIDTH(SET_BIT_WIDTH),
+      .INPUT_WIDTH(ADDRESS_WIDTH - CACHE_LINE_BIT_OFFSET),
+      .DATA_WIDTH(CACHE_LINE_WIDTH)
+  ) cache_unit (
+      .clk(clk),
+      .read_write(write_in_cache_unit),
+      .inp(truncated_address_for_cache),
+      .data_in(fill_data_from_mem),
+      .valid_in(~store),
+      .hit(cache_unit_hit),
+      .data_out(data_out_cache_unit)
+  );
+
+  assign write_in_cache_unit = store | (arbiter_grant & fill_data_from_mem_valid & ~cache_unit_hit);
+
+  assign req_to_arbiter = (~cache_unit_hit | store) & enable;
+
+  assign req_word_to_mem = word;
+  assign req_store_to_mem = store;
+  assign req_addr_to_mem = addr;
+  assign req_store_data_to_mem = data_in;
+
+  //logic delay_arbiter_grant_store;
+  //...
+
+  assign hit = (cache_unit_hit & ~store) | (store & arbiter_grant);
+
+  logic [XLEN-1:0] word_out;
+  assign word_out = data_out_cache_unit[part_in_cacheline*XLEN+:XLEN];
+  logic [1:0] byte_in_word;
+  assign byte_in_word = addr[1:0];
+
+  assign data_out = word ? word_out : {{8 * 3{1'b0}}, word_out[byte_in_word*8+:8]};
+endmodule
+
 module two_caches_arbiter_testonly #(
     parameter integer unsigned SET_BIT_WIDTH = 2,
     parameter integer unsigned ADDRESS_WIDTH = 32,
@@ -66,9 +148,9 @@ module two_caches_arbiter_testonly #(
   logic grant_from_arbiter_2;
 
 
-  dcache #(
+  cache #(
       .SET_BIT_WIDTH(SET_BIT_WIDTH),
-      .ADDRESS_WIDTH(ADDRESS_WIDTH),
+      .ADDRESS_WIDTH(XLEN),
       .DATA_WIDTH(DATA_WIDTH),
       .CACHE_LINE_WIDTH(CACHE_LINE_WIDTH)
   ) dcache_unit_1 (
@@ -90,9 +172,9 @@ module two_caches_arbiter_testonly #(
       .data_out(data_out_1)
   );
 
-  dcache #(
+  cache #(
       .SET_BIT_WIDTH(SET_BIT_WIDTH),
-      .ADDRESS_WIDTH(ADDRESS_WIDTH),
+      .ADDRESS_WIDTH(XLEN),
       .DATA_WIDTH(DATA_WIDTH),
       .CACHE_LINE_WIDTH(CACHE_LINE_WIDTH)
   ) dcache_unit_2 (
@@ -196,9 +278,9 @@ module dcache_mem_testonly #(
 
   logic arbiter_grant;
 
-  dcache #(
+  cache #(
       .SET_BIT_WIDTH(SET_BIT_WIDTH),
-      .ADDRESS_WIDTH(ADDRESS_WIDTH),
+      .ADDRESS_WIDTH(XLEN),
       .DATA_WIDTH(DATA_WIDTH),
       .CACHE_LINE_WIDTH(CACHE_LINE_WIDTH)
   ) dcache_unit (
@@ -244,85 +326,3 @@ module dcache_mem_testonly #(
 
 endmodule
 
-module dcache #(
-    parameter integer unsigned SET_BIT_WIDTH = 2,
-    parameter integer unsigned ADDRESS_WIDTH = 32,
-    parameter integer unsigned DATA_WIDTH = 32,
-    parameter integer unsigned CACHE_LINE_WIDTH = 128
-) (
-    input logic clk,
-    input logic enable,
-    input logic store,
-    input logic [ADDRESS_WIDTH-1:0] addr,
-    input logic [DATA_WIDTH-1:0] data_in,
-    input logic word,  //Defines whether a word or a byte should be loaded or stored
-
-    //Arbiter input
-    input logic arbiter_grant,
-
-    //Mem inputs
-    input logic [CACHE_LINE_WIDTH-1:0] fill_data_from_mem,
-    input logic fill_data_from_mem_valid,
-
-    //Mem outputs
-    output logic req_store_to_mem,
-    output logic req_word_to_mem,
-    output logic [ADDRESS_WIDTH-1:0] req_addr_to_mem,
-    output logic [DATA_WIDTH-1:0] req_store_data_to_mem,
-
-    //Arbiter outputs
-    output logic req_to_arbiter,
-
-    output logic hit,
-    output logic [DATA_WIDTH-1:0] data_out
-);
-
-  localparam integer unsigned CACHE_LINE_BIT_OFFSET = $clog2(CACHE_LINE_WIDTH / DATA_WIDTH * 4);
-
-  logic [ADDRESS_WIDTH - CACHE_LINE_BIT_OFFSET - 1:0] truncated_address_for_cache;
-  logic [CACHE_LINE_BIT_OFFSET-1:0] part_in_cacheline;
-
-  assign truncated_address_for_cache = addr[ADDRESS_WIDTH-1:CACHE_LINE_BIT_OFFSET];
-  assign part_in_cacheline = addr[CACHE_LINE_BIT_OFFSET-1:2];
-
-  logic write_in_cache_unit;
-
-  logic cache_unit_hit;
-  logic [CACHE_LINE_WIDTH-1:0] data_out_cache_unit;
-
-
-  cache #(
-      .SET_BIT_WIDTH(SET_BIT_WIDTH),
-      .INPUT_WIDTH(ADDRESS_WIDTH - CACHE_LINE_BIT_OFFSET),
-      .DATA_WIDTH(CACHE_LINE_WIDTH)
-  ) cache_unit (
-      .clk(clk),
-      .read_write(write_in_cache_unit),
-      .inp(truncated_address_for_cache),
-      .data_in(fill_data_from_mem),
-      .valid_in(~store),
-      .hit(cache_unit_hit),
-      .data_out(data_out_cache_unit)
-  );
-
-  assign write_in_cache_unit = store | (arbiter_grant & fill_data_from_mem_valid & ~cache_unit_hit);
-
-  assign req_to_arbiter = (~cache_unit_hit | store) & enable;
-
-  assign req_word_to_mem = word;
-  assign req_store_to_mem = store;
-  assign req_addr_to_mem = addr;
-  assign req_store_data_to_mem = data_in;
-
-  //logic delay_arbiter_grant_store;
-  //...
-
-  assign hit = (cache_unit_hit & ~store) | (store & arbiter_grant);
-
-  logic [DATA_WIDTH-1:0] word_out;
-  assign word_out = data_out_cache_unit[part_in_cacheline*DATA_WIDTH+:DATA_WIDTH];
-  logic [1:0] byte_in_word;
-  assign byte_in_word = addr[1:0];
-
-  assign data_out = word ? word_out : {{8 * 3{1'b0}}, word_out[byte_in_word*8+:8]};
-endmodule
