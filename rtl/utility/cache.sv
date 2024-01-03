@@ -14,14 +14,8 @@ module cache
     input logic valid_in,
     output logic hit,
     output logic [DATA_WIDTH - 1:0] data_out
-
-    //,output logic valid_from_lines_out[2 ** SET_BIT_WIDTH]
-    //,output logic write_enables_out[2 ** SET_BIT_WIDTH]
-    //,output logic [1:0] set_out
-    //,output logic [INPUT_WIDTH - SET_BIT_WIDTH - 1:0] tag_out
 );
 
-  localparam integer unsigned CACHE_LINES = 2 ** SET_BIT_WIDTH;
   localparam integer unsigned TAG_WIDTH = INPUT_WIDTH - SET_BIT_WIDTH;
 
   logic [SET_BIT_WIDTH - 1:0] set;
@@ -46,7 +40,7 @@ module cache
       .out (write_enables)
   );
 
-  genvar i;  //Generate the cachelines
+  genvar i;
   generate
     for (i = 0; i < CACHE_LINES; i++) begin : g_cache_line
       cache_line #(
@@ -65,17 +59,8 @@ module cache
     end
   endgenerate
 
-  comparator #(
-      .WIDTH(TAG_WIDTH + 1)
-  ) hit_cmp (
-      .in_1({inp[INPUT_WIDTH-1:SET_BIT_WIDTH], 1'b1}),
-      .in_2({tag_from_lines[set], valid_from_lines[set]}),
-      .is_equal(hit)
-  );
+  assign hit = {inp[INPUT_WIDTH-1:SET_BIT_WIDTH], 1'b1} ==
+        {tag_from_lines[set], valid_from_lines[set]};
   assign data_out = data_from_lines[set];
 
-  //assign valid_from_lines_out = valid_from_lines;
-  //assign write_enables_out = write_enables;
-  //assign set_out = set;
-  //assign tag_out = tag_from_lines[set];
 endmodule

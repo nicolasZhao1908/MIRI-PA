@@ -32,13 +32,14 @@ module dcache  import brisc_pkg::*; #(
     output logic [XLEN-1:0] data_out
 );
 
-  localparam integer unsigned CACHE_LINE_BIT_OFFSET = $clog2(CACHE_LINE_WIDTH / XLEN * 4);
+  //localparam int unsigned OffsetBits = $clog2(CACHE_LINE_WIDTH / XLEN * 4);
+  localparam int unsigned OffsetBits = $clog2(BYTE_LEN);
 
-  logic [ADDRESS_WIDTH - CACHE_LINE_BIT_OFFSET - 1:0] truncated_address_for_cache;
-  logic [CACHE_LINE_BIT_OFFSET-1:0] part_in_cacheline;
+  logic [ADDRESS_WIDTH - OffsetBits - 1:0] tag;
+  logic [OffsetBits-1:0] part_in_cacheline;
 
-  assign truncated_address_for_cache = addr[ADDRESS_WIDTH-1:CACHE_LINE_BIT_OFFSET];
-  assign part_in_cacheline = addr[CACHE_LINE_BIT_OFFSET-1:2];
+  assign tag = addr[ADDRESS_WIDTH-1:OffsetBits];
+  assign part_in_cacheline = addr[OffsetBits-1:2];
 
   logic write_in_cache_unit;
 
@@ -48,12 +49,12 @@ module dcache  import brisc_pkg::*; #(
 
   cache #(
       .SET_BIT_WIDTH(SET_BIT_WIDTH),
-      .INPUT_WIDTH(ADDRESS_WIDTH - CACHE_LINE_BIT_OFFSET),
+      .INPUT_WIDTH(ADDRESS_WIDTH - OffsetBits),
       .DATA_WIDTH(CACHE_LINE_WIDTH)
   ) cache_unit (
       .clk(clk),
       .read_write(write_in_cache_unit),
-      .inp(truncated_address_for_cache),
+      .inp(tag),
       .data_in(fill_data_from_mem),
       .valid_in(~store),
       .hit(cache_unit_hit),
