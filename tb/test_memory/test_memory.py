@@ -1,10 +1,9 @@
 import random
-
-from memory import Memory
 from math import ceil
 
 import cocotb
 from cocotb.triggers import Timer
+from memory import Memory
 
 LD = 0
 ST = 1
@@ -44,7 +43,7 @@ async def test_suit(dut, suit):
 
         dut.req.value = suit[i][0] >= 0
         dut.store.value = suit[i][0] == ST if suit[i][0] >= 0 else 0
-        dut.storeWord.value = suit[i][3]
+        dut.store_word.value = suit[i][3]
         dut.address.value = suit[i][1]
         dut.evict_data.value = 15 if len(suit[i]) == 2 else suit[i][2]
 

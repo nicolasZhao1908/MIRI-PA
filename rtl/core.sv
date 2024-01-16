@@ -31,8 +31,8 @@ module core
   logic is_jump_D;
   alu_ctrl_e alu_ctrl_D;
   alu_src_e alu_src_D;
-  mem_op_size_e mem_op_size_D;
-  logic xcpt_D;
+  data_size_e data_size_D;
+  xcpt_e xcpt_D;
 
   logic [REG_BITS-1:0] rd_EX;
   logic [REG_BITS-1:0] rs1_EX;
@@ -46,7 +46,7 @@ module core
   logic reg_write_EX;
   result_src_e result_src_EX;
   logic mem_write_EX;
-  mem_op_size_e mem_op_size_EX;
+  data_size_e data_size_EX;
 
   logic [XLEN-1:0] read_data_C;
   logic [XLEN-1:0] alu_res_C;
@@ -70,7 +70,6 @@ module core
       .instr_out(instr_F),
       .pc_plus4_out(pc_plus4_F)
   );
-  assign pc = pc_F;
 
   decode_stage decode (
       .clk(clk),
@@ -103,14 +102,15 @@ module core
       .is_branch_out(is_branch_D),
       .alu_ctrl_out(alu_ctrl_D),
       .alu_src_out(alu_src_D),
-      .mem_op_size_out(mem_op_size_D),
+      .data_size_out(data_size_D),
       .xcpt_out(xcpt_D)
   );
 
-  ex_stage execute (
+  alu_stage alu (
       // IN
       .clk(clk),
       .reset(reset),  // high reset
+      .stall_in(),
       .flush_in(flush_EX),
       .fwd_src1_in(fwd_src1_EX),
       .fwd_src2_in(fwd_src2_EX),
@@ -146,18 +146,29 @@ module core
       .alu_src_in(alu_src_D),
       .is_branch_in(is_branch_D),
       .is_jump_in(is_jump_D),
-      .mem_op_size_in(mem_op_size_D),
+      .data_size_in(data_size_D),
 
       // OUT: ctrl signals
       .reg_write_out (reg_write_EX),
       .result_src_out(result_src_EX),
       .mem_write_out (mem_write_EX),
-      .mem_op_size_out (mem_op_size_EX)
+      .data_size_out (data_size_EX),
+      .xcpt_out()
   );
 
   cache_stage cache (
       .clk(clk),
       .reset(reset),
+      .stall_in(),
+      .flush_in(),
+      .stall_out(),
+      .fill_in(),
+      .fill_data_in(),
+      .fill_addr_in(),
+      .mem_req_out(),
+      .mem_req_data_out(),
+      .mem_req_addr_out(),
+      .mem_req_write_out(),
       .alu_res_in(alu_res_EX),
       .write_data_in(write_data_EX),
       .pc_plus4_in(pc_plus4_EX),
@@ -166,20 +177,20 @@ module core
       .read_data_out(read_data_C),
       .pc_plus4_out(pc_plus4_C),
       .rd_out(rd_C),
-      .write_data_out(mem_write_data),
+    //   .write_data_out(mem_write_data),
       // CTRL signals
+      .data_size_in(data_size_EX),
       .reg_write_in(reg_write_EX),
       .mem_write_in(mem_write_EX),
       .result_src_in(result_src_EX),
       .reg_write_out(reg_write_C),
-      .mem_write_out(mem_write),
       .result_src_out(result_src_C)
   );
-  assign mem_addr = alu_res_C;
 
   wb_stage write_back (
       .clk(clk),
       .reset(reset),
+      .stall_in(),
       .alu_res_in(alu_res_C),
       .read_data_in(read_data_C),
       .pc_plus4_in(pc_plus4_C),
@@ -192,7 +203,10 @@ module core
       .reg_write_out(reg_write_WB)
   );
 
-
+  // TODO: pass here fetch and cache stage stall logic
+  // fetch stage: stall on mem_request (cache miss)
+  // cache stage: stall on mem_request (load cache miss or eviction [store cache miss])
+  //            or stb_flush
   hazard hazard_unit (
       .rs1_EX_in(rs1_EX),
       .rs2_EX_in(rs2_EX),

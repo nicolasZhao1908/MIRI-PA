@@ -1,7 +1,7 @@
 import random
-from cache import Cache
 
 import cocotb
+from cache import Cache
 from cocotb.triggers import Timer
 
 
@@ -63,7 +63,7 @@ async def test_cache(dut, suit):
     for i in range(len(suit)):
         dut.read_write.value = suit[i][0]
         dut.inp.value = suit[i][1]
-        dut.data_in.value = suit[i][2]
+        dut.write_data.value = suit[i][2]
         dut.valid_in = suit[i][3]
 
         dut.clk.value = 0
@@ -76,7 +76,7 @@ async def test_cache(dut, suit):
         # print(f"Write in: {dut.read_write.value}")
         # print(f"Cache Valid out: {dut.valid_from_lines_out.value}")
         # print(f"Write enebles out: {dut.write_enables_out.value}")
-        # print(f"Write data out: {dut.data_out.value}")
+        # print(f"Write data out: {dut.read_data.value}")
         # print(f"Input data in: {dut.inp.value}")
         # print(f"Set data out: {dut.set_out.value}")
         # print(f"Tag out: {dut.tag_out.value}")
@@ -86,8 +86,8 @@ async def test_cache(dut, suit):
             hit, data = cache.read(suit[i][1])
             assert hit == dut.hit.value, f"Hit malfunctioning: Cycle: {i}. Correct: {hit}, got {dut.hit.value}"
             if hit:
-                assert data == int(str(dut.data_out.value),
-                                   2), f"Data inconsistent: {int(str(dut.data_out.value), 2)} orig {dut.data_out.value} expected {data} in cycle{i}"
+                assert data == int(str(dut.read_data.value),
+                                   2), f"Data inconsistent: {int(str(dut.read_data.value), 2)} orig {dut.read_data.value} expected {data} in cycle{i}"
 
 
 def getTestLine(write, inp, data, valid_in=1):

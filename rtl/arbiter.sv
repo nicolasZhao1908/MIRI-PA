@@ -1,40 +1,42 @@
 `include "brisc_pkg.svh"
 
-module arbiter #(
+module arbiter
+  import brisc_pkg::*;
+#(
     parameter integer unsigned ADDRESS_WIDTH = 32,
     parameter integer unsigned DATA_WIDTH = 32
 ) (
     input logic clk,
-    input logic req_1,
-    input logic store_to_mem_1,
-    input logic store_word_1,
-    input logic [ADDRESS_WIDTH-1:0] addr_to_mem_1,
-    input logic [DATA_WIDTH-1:0] data_to_mem_1,
 
-    input logic req_2,
-    input logic store_to_mem_2,
-    input logic store_word_2,
-    input logic [ADDRESS_WIDTH-1:0] addr_to_mem_2,
-    input logic [DATA_WIDTH-1:0] data_to_mem_2,
+    input logic mem_req_1,
+    input logic mem_write_1,
+    input data_size_e data_size_1,
+    input logic [ADDRESS_WIDTH-1:0] mem_addr_1,
+    input logic [DATA_WIDTH-1:0] mem_data_1,
 
+    input logic mem_req_2,
+    input logic mem_write_2,
+    input data_size_e data_size_2,
+    input logic [ADDRESS_WIDTH-1:0] mem_addr_2,
+    input logic [DATA_WIDTH-1:0] mem_data_2,
 
     output logic grant_1,
     output logic grant_2,
 
-    output logic request_to_mem,
-    output logic store_to_mem,
-    output logic store_word_to_mem,
-    output logic [ADDRESS_WIDTH-1:0] addr_to_mem,
-    output logic [DATA_WIDTH-1:0] data_to_mem
+    output logic mem_req,
+    output logic mem_write,
+    output data_size_e data_size,
+    output logic [ADDRESS_WIDTH-1:0] mem_addr,
+    output logic [DATA_WIDTH-1:0] mem_data
 );
 
   logic gr2;
   logic ff_out;
 
-  assign gr2 = req_2 & (ff_out | ~req_1);
+  assign gr2 = mem_req_2 & (ff_out | ~mem_req_1);
 
   ff #(
-    .WIDTH(1)
+      .WIDTH(1)
   ) req2_running (
       .clk(clk),
       .enable(1'b1),
@@ -64,10 +66,10 @@ module arbiter #(
       .clk(~clk),
       .enable(1'b1),
       .reset(1'b0),
-      .inp(~(ff_out & req_2) & req_1),
+      .inp(~(ff_out & mem_req_2) & mem_req_1),
       .out(grant_1_stableizer_ff_out)
   );
-  assign grant_1 = grant_1_stableizer_ff_out & (~(ff_out & req_2) & req_1);
+  assign grant_1 = grant_1_stableizer_ff_out & (~(ff_out & mem_req_2) & mem_req_1);
 
   logic grant_2_stableizer_ff_out;
   ff #(
@@ -80,10 +82,11 @@ module arbiter #(
       .out(grant_2_stableizer_ff_out)
   );
   assign grant_2 = grant_2_stableizer_ff_out & gr2;
+  assign mem_req = grant_1 | grant_2;
 
-  assign request_to_mem = grant_1 | grant_2;
-  assign store_to_mem = grant_1 ? store_to_mem_1 : store_to_mem_2;
-  assign addr_to_mem = grant_1 ? addr_to_mem_1 : addr_to_mem_2;
-  assign data_to_mem = grant_1 ? data_to_mem_1 : data_to_mem_2;
-  assign store_word_to_mem = grant_1 ? store_word_1 : store_word_2;
+  // prioritize grant from instruction cache
+  assign mem_write = grant_1 ? mem_write_1 : mem_write_2;
+  assign mem_addr = grant_1 ? mem_addr_1 : mem_addr_2;
+  assign mem_data = grant_1 ? mem_data_1 : mem_data_2;
+  assign data_size = grant_1 ? data_size_1 : data_size_2;
 endmodule

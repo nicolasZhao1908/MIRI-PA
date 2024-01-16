@@ -8,13 +8,13 @@ module shift_reg
     input reset,
     input enable,
 
-    input [WIDTH-1:0] data_in,
-    output [WIDTH-1:0] data_out
+    input [WIDTH-1:0] write_data,
+    output [WIDTH-1:0] read_data
 );
 
 // reg
 logic [WIDTH-1:0] regs[N];
-assign data_out = regs[N-1];
+assign read_data = regs[N-1];
 
 int unsigned i;
 always_ff @(posedge clk) begin
@@ -23,7 +23,7 @@ always_ff @(posedge clk) begin
             regs[i] <= 0;
         end
     end else if (enable) begin
-        regs[0] <= data_in;
+        regs[0] <= write_data;
         for (i = 1; i < N;  i++) begin
             regs[i] <= regs[i-1];
         end

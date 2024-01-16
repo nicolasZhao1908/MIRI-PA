@@ -92,7 +92,7 @@ async def test_cache(dut, suit):
     for i in range(len(suit)):
         dut.store.value = suit[i][0]
         dut.addr.value = suit[i][1]
-        dut.data_in.value = suit[i][2]
+        dut.write_data.value = suit[i][2]
         dut.word.value = suit[i][3]
         # dut.valid_in = suit[i][4]
 
@@ -126,8 +126,8 @@ async def test_cache(dut, suit):
             assert rtl_hit, "Cache hit guaranteed after time!"
 
             assert real_data == int(
-                str(dut.data_out.value), 2
-            ), f"Data inconsistent: {int(str(dut.data_out.value), 2)} orig {dut.data_out.value} expected {real_data} in cycle{i}"
+                str(dut.read_data.value), 2
+            ), f"Data inconsistent: {int(str(dut.read_data.value), 2)} orig {dut.read_data.value} expected {real_data} in cycle{i}"
 
         # print(f"Data: {[dut.data_out_out.value[i] for i in range(12)]}")
 

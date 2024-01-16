@@ -37,6 +37,7 @@ module hazard
     assign load_stall_w = '0;
     assign pc_taken_w = '0;
 
+
     // Forwarding C -> EX or WB -> EX
     if (((rs1_EX_in == rd_C_in) & reg_write_C_in) & (rs1_EX_in != 0)) begin
       assign fwd_src1_out = FROM_C;
@@ -64,7 +65,7 @@ module hazard
     // Flush on control hazard
     assign pc_taken_w = (pc_src_in == FROM_EX);
     assign flush_D_out = pc_taken_w;
-    assign flush_EX_out = load_stall_w | pc_taken_w;
+    assign flush_EX_out = load_stall_w;
   end
 
 

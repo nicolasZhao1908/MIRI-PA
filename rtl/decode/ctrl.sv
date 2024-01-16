@@ -5,21 +5,21 @@ module ctrl
 (
     input logic [2:0] funct3,
     input logic [6:0] funct7,
-    input logic [OPCODE_BITS-1:0] opcode,
+    input logic [OPCODE_WIDTH-1:0] opcode,
     output logic reg_write,
     output imm_src_e imm_src,
     output result_src_e result_src,
     output alu_src_e alu_src,
     output alu_ctrl_e alu_ctrl,
-    output mem_op_size_e mem_op_size,
+    output data_size_e data_size,
     output logic mem_write,
     output logic is_branch,
     output logic is_jump,
-    output logic xcpt
+    output xcpt_e xcpt
 );
   alu_op_e alu_op;
   always_comb begin
-    assign xcpt = 1'b0;
+    assign xcpt = NO_XCPT;
     assign reg_write = 1'b0;
     assign mem_write = 1'b0;
     assign is_branch = 1'b0;
@@ -37,14 +37,14 @@ module ctrl
         assign is_jump = 1'b0;
         unique case(funct3)
           3'b000: begin
-            assign mem_op_size = B;
+            assign data_size = B;
           end
           3'b010: begin
-            assign mem_op_size = W;
+            assign data_size = W;
           end
           default:
           begin
-            assign xcpt = 1;
+            assign xcpt = UNDEF_INSTR;
           end
         endcase
       end
@@ -59,14 +59,14 @@ module ctrl
         assign is_jump = 1'b0;
         unique case(funct3)
           3'b000: begin
-            assign mem_op_size = B;
+            assign data_size = B;
           end
           3'b010: begin
-            assign mem_op_size = W;
+            assign data_size = W;
           end
           default:
           begin
-            assign xcpt = 1;
+            assign xcpt = UNDEF_INSTR;
           end
         endcase
       end
@@ -112,7 +112,7 @@ module ctrl
         assign is_jump = 1'b1;
       end
       default: begin
-        xcpt = 1;
+        xcpt = UNDEF_INSTR;
       end
     endcase
     unique case (alu_op)
@@ -137,12 +137,12 @@ module ctrl
             assign alu_ctrl = AND;
           end
           default: begin
-            xcpt = 1;
+            xcpt = UNDEF_INSTR;
           end
         endcase
       end
       default: begin
-        xcpt = 1;
+        xcpt = UNDEF_INSTR;
       end
     endcase
   end

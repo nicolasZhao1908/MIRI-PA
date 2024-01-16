@@ -1,17 +1,19 @@
 `include "brisc_pkg.svh"
 
-module memory #(
-    parameter integer unsigned FILL_DATA_WIDTH = 128,
-    parameter integer unsigned SPACES = 128 * 4,
+module memory
+  import brisc_pkg::*;
+#(
+    parameter integer unsigned FILL_DATA_WIDTH = CACHE_LINE_WIDTH,
+    parameter integer unsigned SPACES = CACHE_LINE_WIDTH * 4,
     parameter integer unsigned ADDRESS_WIDTH = 32,
     parameter integer unsigned STORE_DATA_WIDTH = 8,
-    parameter integer unsigned DATA_TRANSFER_TIME = 5
+    parameter integer unsigned DATA_TRANSFER_TIME = MEM_RESP_DELAY
 
 ) (
     input logic clk,
     input logic req,
     input logic store,
-    input logic storeWord,
+    input logic store_word,
     input logic [ADDRESS_WIDTH-1:0] address,
     input logic [(32 / STORE_DATA_WIDTH) * STORE_DATA_WIDTH-1:0] evict_data,
     output logic [FILL_DATA_WIDTH-1:0] fill_data,
@@ -29,30 +31,30 @@ module memory #(
 );
   //TODO NO RESET DEFINED! reset
 
-  localparam integer unsigned ControlBits = $clog2(SPACES);
-  localparam integer unsigned FFperWord = 32 / STORE_DATA_WIDTH;
+  localparam integer unsigned DEMUX_CTRL_WIDTH = $clog2(SPACES);
+  localparam integer unsigned FF_PER_WORD = 32 / STORE_DATA_WIDTH;
 
   logic [0:0] enables[SPACES];
   logic [0:0] enables_byte[SPACES];
   logic [0:0] enables_word[SPACES];
-  logic [FFperWord-1:0] enables_word_raw[SPACES / FFperWord];
+  logic [FF_PER_WORD-1:0] enables_word_raw[SPACES / FF_PER_WORD];
 
-  logic [STORE_DATA_WIDTH-1:0] data_out[SPACES];
+  logic [STORE_DATA_WIDTH-1:0] read_data[SPACES];
 
   demux #(
-      .CTRL(ControlBits)
+      .CTRL_WIDTH(DEMUX_CTRL_WIDTH)
   ) enable_demux_store_byte (
       .inp (store & req),
-      .ctrl(address[ControlBits-1:0]),
+      .ctrl(address[DEMUX_CTRL_WIDTH-1:0]),
       .out (enables_byte)
   );
 
   demux #(
-      .CTRL(ControlBits - $clog2(FFperWord)),
-      .DATA_WIDTH(FFperWord)
+      .CTRL_WIDTH(DEMUX_CTRL_WIDTH - $clog2(FF_PER_WORD)),
+      .DATA_WIDTH(FF_PER_WORD)
   ) enable_demux_store_word (
-      .inp ({FFperWord{store & req}}),
-      .ctrl(address[ControlBits-1:$clog2(FFperWord)]),
+      .inp ({FF_PER_WORD{store & req}}),
+      .ctrl(address[DEMUX_CTRL_WIDTH-1:$clog2(FF_PER_WORD)]),
       .out (enables_word_raw)
   );
 
@@ -61,32 +63,32 @@ module memory #(
   genvar ienables;
   generate
     for (ienables = 0; ienables < SPACES; ienables++) begin : gen_arraymapping_enables
-      assign enables_word[ienables] = enables_word_raw[ienables/FFperWord][ienables%FF_PER_LINE];
+      assign enables_word[ienables] = enables_word_raw[ienables/FF_PER_WORD][ienables%FF_PER_LINE];
     end
   endgenerate
 
-  assign enables = storeWord ? enables_word : enables_byte;
+  assign enables = store_word ? enables_word : enables_byte;
   // assign enables_o = enables;
 
-  logic [FFperWord * STORE_DATA_WIDTH-1:0] internal_evict_data;
-  assign internal_evict_data = storeWord ?
-                              evict_data : {FFperWord{evict_data[STORE_DATA_WIDTH - 1:0]}};
+  logic [FF_PER_WORD * STORE_DATA_WIDTH-1:0] internal_evict_data;
+  assign internal_evict_data = store_word ?
+                              evict_data : {FF_PER_WORD{evict_data[STORE_DATA_WIDTH - 1:0]}};
 
   // assign evictD = internal_evict_data;
 
   genvar i;
   genvar wordi;
   generate  //Main memory
-    for (i = 0; i < SPACES / FFperWord; i++) begin : g_all_ff
-      for (wordi = 0; wordi < FFperWord; wordi++) begin : g_word_ff
+    for (i = 0; i < SPACES / FF_PER_WORD; i++) begin : g_all_ff
+      for (wordi = 0; wordi < FF_PER_WORD; wordi++) begin : g_word_ff
         ff #(
             .WIDTH(STORE_DATA_WIDTH)
         ) flippyFloppy (
             .clk(clk),
-            .enable(enables[i*FFperWord+wordi]),
+            .enable(enables[i*FF_PER_WORD+wordi]),
             .reset(1'b0),
             .inp(internal_evict_data[(wordi+1)*STORE_DATA_WIDTH-1:wordi*STORE_DATA_WIDTH]),
-            .out(data_out[i*FFperWord+wordi])
+            .out(read_data[i*FF_PER_WORD+wordi])
         );
       end
       //DEBUG assign enables_o[i] = enables[i][0:0];
@@ -105,7 +107,7 @@ module memory #(
     for (i = 0; i < LINES; i++) begin : g_line
       for (i2 = 0; i2 < FF_PER_LINE; i2++) begin : g_ff_line
         assign lines_out[i][(i2 + 1) * STORE_DATA_WIDTH - 1 : i2 * STORE_DATA_WIDTH] =
-              data_out[i * FF_PER_LINE + i2];
+              read_data[i * FF_PER_LINE + i2];
       end
     end
   endgenerate
@@ -131,12 +133,11 @@ module memory #(
   assign response_valid = delayed_result[FILL_DATA_WIDTH];
   assign reset_bus = delayed_result[FILL_DATA_WIDTH];
 
-
   //DEBUG
   /*
-    assign data_out_out = data_out;
+    assign data_out_out = read_data;
     assign stAndReq = store & req;
-    assign ctrAddr = address[ControlBits-1:0];
+    assign ctrAddr = address[DEMUX_CTRL_WIDTH-1:0];
     assign mem_o_isnt ={valid_out, lines_out[selected_line]};
     assign evict_data_out = evict_data;
     */

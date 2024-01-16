@@ -35,8 +35,8 @@ module decode_stage
     output logic is_jump_out,
     output alu_ctrl_e alu_ctrl_out,
     output alu_src_e alu_src_out,
-    output mem_op_size_e mem_op_size_out,
-    output logic xcpt_out
+    output data_size_e data_size_out,
+    output xcpt_e xcpt_out
 );
 
 
@@ -49,7 +49,7 @@ module decode_stage
       // IN
       .funct3(instr_w[14:12]),
       .funct7(instr_w[31:25]),
-      .opcode(instr_w[OPCODE_BITS-1:0]),
+      .opcode(instr_w[OPCODE_WIDTH-1:0]),
       // OUT
       .reg_write(reg_write_out),
       .imm_src(imm_src_w),
@@ -59,12 +59,12 @@ module decode_stage
       .mem_write(mem_write_out),
       .is_branch(is_branch_out),
       .is_jump(is_jump_out),
-      .mem_op_size(mem_op_size_out),
+      .data_size(data_size_out),
       .xcpt(xcpt_out)
   );
   assign rs1_out = instr_w[19:15];
   assign rs2_out = instr_w[24:20];
-  assign rd_out = instr_w[11:7];
+  assign rd_out  = instr_w[11:7];
 
   regfile rfile (
       // IN
@@ -100,35 +100,17 @@ module decode_stage
     endcase
   end
 
-  ff #(
-      .WIDTH(ILEN),
-      .RESET_VALUE(NOP)
-  ) instr_f_decode (
-      .clk(clk),
-      .enable(~stall_in),
-      .reset(flush_in | reset),
-      .inp(instr_in),
-      .out(instr_w)
-  );
-
-  ff #(
-      .WIDTH(XLEN)
-  ) pc_curr_f_decode (
-      .clk(clk),
-      .enable(~stall_in),
-      .reset(flush_in | reset),
-      .inp(pc_in),
-      .out(pc_out)
-  );
-
-  ff #(
-      .WIDTH(XLEN)
-  ) pc_plus4_f_decode (
-      .clk(clk),
-      .enable(~stall_in | reset),
-      .reset(flush_in),
-      .inp(pc_plus4_in),
-      .out(pc_plus4_out)
-  );
+  // Pipeline registers F->D
+  always_ff @(posedge clk) begin
+    if (reset | flush_in) begin
+      instr_w <= NOP;
+      pc_out <= 0;
+      pc_plus4_out <= 0;
+    end else if (~stall_in) begin
+      instr_w <= instr_in;
+      pc_out <= pc_in;
+      pc_plus4_out <= pc_plus4_in;
+    end
+  end
 
 endmodule

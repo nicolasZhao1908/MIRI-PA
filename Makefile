@@ -1,11 +1,10 @@
-TESTS := tb/test_dcache \
-		tb/test_arbiter \
+TESTS := tb/test_arbiter \
 		tb/test_regfile \
 		tb/test_memory \
-		tb/test_ram \
-		tb/test_alu \
-		tb/test_ifetch \
-		tb/test_decode \
+		tb/test_fetch \
+		tb/test_cache \
+		tb/test_dcache \
+		tb/test_stb \
 		tb/test_core
 
 .PHONY: $(TESTS) clean all

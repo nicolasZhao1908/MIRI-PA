@@ -3,11 +3,15 @@
     "verilog.linting.linter": "verilator",
     "verilog.linting.verilator.includePath": [
         "rtl/cache",
-        "rtl/utility",
+        "rtl/utils",
+        "rtl/alu",
+        "rtl/decode",
+        "rtl/fetch",
+        "rtl/wb",
         "rtl"
     ],
     "pylint.cwd": "${workspaceFolder}/tb/models",
     "pylint.args": [
-        "--disable=E1120,C0114,C0116"
+        "--disable=E1120,C0114,C0116,W0212"
     ]
 }
