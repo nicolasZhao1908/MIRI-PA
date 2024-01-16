@@ -79,6 +79,8 @@ module cache_top
       .evict_addr(mem_req_addr)
   );
 
+  // STALL LOGIC: cache_miss & store_buffer_miss
+
   always_comb begin
     miss = cache_miss;
     arbiter_req = cache_evict | (cache_miss & (~stb_read_valid) & is_load);

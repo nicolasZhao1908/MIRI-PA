@@ -11,4 +11,5 @@ module core_top
       .clk(clk),
       .reset(reset)
   );
+
 endmodule

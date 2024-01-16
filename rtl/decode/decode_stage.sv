@@ -100,7 +100,7 @@ module decode_stage
     endcase
   end
 
-  // Pipeline registers F->D
+  // Pipeline registers F -> D
   always_ff @(posedge clk) begin
     if (reset | flush_in) begin
       instr_w <= NOP;

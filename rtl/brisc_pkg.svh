@@ -94,9 +94,10 @@ package brisc_pkg;
   } alu_ctrl_e;
 
 
-  typedef enum logic {
-    IS_STORE = 1'b0,
-    IS_LOAD  = 1'b1
+  typedef enum logic [1:0] {
+    IS_STORE = 2'b00,
+    IS_LOAD = 2'b01,
+    OTHER = 2'b10
   } stb_ctrl_e;
 
   typedef enum logic {

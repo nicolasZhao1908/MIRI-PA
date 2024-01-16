@@ -14,7 +14,7 @@
 .global _start
 _start:
     addi t1, zero, 0 // int i = 0
-    la t2, a         // int* a
+    la t2, a         // int* a // auipc
     addi t3, zero, 0 // int sum = 0
     lw t4, length    // int length = 128
 loop:

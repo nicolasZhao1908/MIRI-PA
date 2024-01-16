@@ -11,7 +11,7 @@ module store_buffer
     // IF MEM IS NOT BUSY THEN enable=1
     input logic enable,
 
-    // IS LOAD OR STORE?
+    // IS LOAD, STORE OR OTHER?
     input stb_ctrl_e stb_ctrl_in,
     input logic [ADDRESS_WIDTH-1:0] addr_in,
 
@@ -48,15 +48,13 @@ module store_buffer
   logic [$clog2(NUM_ENTRIES)-1:0] write_ptr_n, write_ptr_q;
   logic [$clog2(NUM_ENTRIES):0] cnt_n, cnt_q;
 
-  // STB flushes all entries
-  logic start_flush;
+  // STB flushes 1 entry
   logic empty;
   logic full;
-  logic flush_n, flush_q;
-
-  logic can_store;
+  logic flush;
   logic valid;
   int unsigned found_idx;
+
   always_comb begin : read
     /* verilator lint_off WIDTH */
 
@@ -66,7 +64,6 @@ module store_buffer
     write_ptr_n = write_ptr_q;
     read_ptr_n = read_ptr_q;
     cnt_n = cnt_q;
-    flush_n = flush_q;
 
     for (int unsigned i = 0; i > cnt_q; ++i) begin
       found_idx = read_ptr_q + i;
@@ -87,21 +84,24 @@ module store_buffer
     cache_write_addr_out = entries_q[found_idx].addr;
     data_size_out = entries_q[found_idx].data_size;
 
-    start_flush = ((stb_ctrl_in == IS_LOAD & data_size_in == W &
-                    entries_q[found_idx].data_size == B &read_valid_out)
-                  | (stb_ctrl_in == IS_STORE & full));
-    flush_n = start_flush | (flush_q & ~empty);
+    // Flush to $ when:
+    //  a) is a LW and the data in the entry holds a byte
+    //  b) is a ST and is not empty
+    //  c) is a ALU operation
+    flush = ((stb_ctrl_in == IS_LOAD & data_size_in == W &
+                    entries_q[found_idx].data_size == B & valid)
+                  | ((stb_ctrl_in == IS_STORE & full)) & ~empty)
+                  | stb_ctrl_in == OTHER;
 
     // The only interaction between STB and cache is writing to the cache
-    cache_write_out = 1;
-    can_store = ~flush_q  & ((stb_ctrl_in == IS_STORE) & ~full);
+    cache_write_out = flush;
 
     // Flush to $
-    if (flush_q) begin
+    if (flush) begin
       entries_n[read_ptr_q].valid = 0;
       read_ptr_n = read_ptr_q + 1;
       cnt_n = cnt_q - 1;
-    end else if (can_store) begin
+    end else if ((stb_ctrl_in == IS_STORE) & ~full) begin
       // Store into STB
       entries_n[write_ptr_q].addr = addr_in;
       entries_n[write_ptr_q].valid = 1;
@@ -121,13 +121,11 @@ module store_buffer
       write_ptr_q <= '0;
       read_ptr_q <= '0;
       cnt_q <= '0;
-      flush_q <= '0;
     end else if (enable) begin
       entries_q <= entries_n;
       write_ptr_q <= write_ptr_n;
       read_ptr_q <= read_ptr_n;
       cnt_q <= cnt_n;
-      flush_q <= flush_n;
     end
   end
 endmodule

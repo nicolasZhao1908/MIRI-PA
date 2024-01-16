@@ -91,7 +91,7 @@ module memory
             .out(read_data[i*FF_PER_WORD+wordi])
         );
       end
-      //DEBUG assign enables_o[i] = enables[i][0:0];
+      // assign enables_o[i] = enables[i][0:0];
     end
   endgenerate
 
