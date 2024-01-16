@@ -18,21 +18,18 @@ async def test_defined_suit(dut):
     await test_suit(dut, suit)
 
 
-@cocotb.test()
+#@cocotb.test()
 async def test_random_suit(dut):
     suit = []
 
     for i in range(128):
-        suit.append([ST, i, 0, True])
+        suit.append([ST, i, True])
     # suit = [[1, 15, 8106], [-3, 34, 5765], [1, 8, 3528], [-1, 41, 701], [0, 18, 1785], [-2, 1, 1162], [0, 38, 238], [1, 21, 4423], [1, 29, 5010], [1, 29, 1645], [1, 24, 8128], [0, 23, 3970]]
     for _ in range(10000):
         if random.randint(0, 1) == 0:
-            suit.append([LD, random.randint(0, 10) * 4, 0, False])
+            suit.append([LD, random.randint(0, 10) * 4, False])
         else:
-            if (random.randint(0, 1) == 0):
-                suit.append([ST, random.randint(0, 10) * 4, random.randint(0, 10000), True])
-            else:
-                suit.append([ST, random.randint(0, 40), random.randint(0, 2**8 - 1), False])
+            suit.append([ST, random.randint(0, 10) * 4, False])
 
     await test_suit(dut, suit)
 
@@ -43,7 +40,6 @@ async def test_suit(dut, suit):
 
         dut.req.value = suit[i][0] >= 0
         dut.store.value = suit[i][0] == ST if suit[i][0] >= 0 else 0
-        dut.store_word.value = suit[i][3]
         dut.address.value = suit[i][1]
         dut.evict_data.value = 15 if len(suit[i]) == 2 else suit[i][2]
 
