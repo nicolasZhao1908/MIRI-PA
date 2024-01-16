@@ -1,146 +1,123 @@
 `include "brisc_pkg.svh"
 
+
 module memory
   import brisc_pkg::*;
 #(
-    parameter integer unsigned FILL_DATA_WIDTH = CACHE_LINE_WIDTH,
-    parameter integer unsigned SPACES = CACHE_LINE_WIDTH * 4,
-    parameter integer unsigned ADDRESS_WIDTH = 32,
-    parameter integer unsigned STORE_DATA_WIDTH = 8,
-    parameter integer unsigned DATA_TRANSFER_TIME = MEM_RESP_DELAY
+    parameter integer unsigned DATA_TRANSFER_TIME = MEM_RESP_DELAY,
+    // taking into account the matrix mult test
+    parameter int unsigned MEM_DEPTH = 4352
 
 ) (
     input logic clk,
     input logic req,
-    input logic store,
-    input logic store_word,
-    input logic [ADDRESS_WIDTH-1:0] address,
-    input logic [(32 / STORE_DATA_WIDTH) * STORE_DATA_WIDTH-1:0] evict_data,
-    output logic [FILL_DATA_WIDTH-1:0] fill_data,
-    output logic response_valid
-
-
-    // ,output logic [0:0] enables_o [512]
-    // ,output logic [STORE_DATA_WIDTH-1:0] data_out_out [128*4]
-    // ,output logic [31:0] evictD
-    /*,output logic stAndReq
-    ,output logic [6:0] ctrAddr
-    ,output logic [128:0] mem_o_isnt
-    ,output logic [STORE_DATA_WIDTH-1:0] evict_data_out */
+    input logic req_store,
+    input logic [ADDRESS_WIDTH-1:0] req_address,
+    input logic [CACHE_LINE_WIDTH-1:0] req_evict_data,
+    output logic [CACHE_LINE_WIDTH-1:0] fill_data,
+    output logic [ADDRESS_WIDTH-1:0] fill_address,
+    output logic fill
 
 );
-  //TODO NO RESET DEFINED! reset
-
-  localparam integer unsigned DEMUX_CTRL_WIDTH = $clog2(SPACES);
-  localparam integer unsigned FF_PER_WORD = 32 / STORE_DATA_WIDTH;
-
-  logic [0:0] enables[SPACES];
-  logic [0:0] enables_byte[SPACES];
-  logic [0:0] enables_word[SPACES];
-  logic [FF_PER_WORD-1:0] enables_word_raw[SPACES / FF_PER_WORD];
-
-  logic [STORE_DATA_WIDTH-1:0] read_data[SPACES];
-
-  demux #(
-      .CTRL_WIDTH(DEMUX_CTRL_WIDTH)
-  ) enable_demux_store_byte (
-      .inp (store & req),
-      .ctrl(address[DEMUX_CTRL_WIDTH-1:0]),
-      .out (enables_byte)
-  );
-
-  demux #(
-      .CTRL_WIDTH(DEMUX_CTRL_WIDTH - $clog2(FF_PER_WORD)),
-      .DATA_WIDTH(FF_PER_WORD)
-  ) enable_demux_store_word (
-      .inp ({FF_PER_WORD{store & req}}),
-      .ctrl(address[DEMUX_CTRL_WIDTH-1:$clog2(FF_PER_WORD)]),
-      .out (enables_word_raw)
-  );
+  localparam int unsigned WORDS_IN_LINE = CACHE_LINE_WIDTH / WORD_WIDTH;
+  localparam int unsigned WORD_OFFSET_WIDTH = $clog2(WORDS_IN_LINE);
+  localparam int unsigned BYTE_OFFSET_WIDTH = $clog2(WORD_WIDTH / BYTE_WIDTH);
 
 
+  logic [XLEN-1:0] datas_n[MEM_DEPTH];
+  logic [XLEN-1:0] datas_q[MEM_DEPTH];
 
-  genvar ienables;
-  generate
-    for (ienables = 0; ienables < SPACES; ienables++) begin : gen_arraymapping_enables
-      assign enables_word[ienables] = enables_word_raw[ienables/FF_PER_WORD][ienables%FF_PER_LINE];
+  logic [CACHE_LINE_WIDTH-1:0] load_output;
+  logic [ADDRESS_WIDTH-BYTE_OFFSET_WIDTH-1:0] word_addr;
+  logic [WORD_OFFSET_WIDTH-1:0] word_offset;
+
+  initial begin
+    // read both instructions and data
+    $readmemh("../../tests/mem.hex", datas_q);
+  end
+
+  // WRITE LOGIC
+  struct packed {
+    logic [CACHE_LINE_WIDTH-1:0] data;
+    logic [ADDRESS_WIDTH-1:0] addr;
+    logic req;
+    logic req_store;
+  }
+      mem_req, mem_req_delayed;
+
+  logic [WORD_WIDTH-1:0] tmp;
+  always_comb begin
+
+    /* verilator lint_off WIDTH  */
+    // WRITE LOGIC
+    word_addr = req_address[ADDRESS_WIDTH-1:BYTE_OFFSET_WIDTH];
+    word_offset = req_address[WORD_OFFSET_WIDTH+BYTE_OFFSET_WIDTH-1:BYTE_OFFSET_WIDTH];
+
+    datas_n = datas_q;
+    // ASSUME ALIGNED SINCE UNALIGNED MEM OP THROWS AN XCPT IN ALU
+    for (int unsigned i = 0; i < WORDS_IN_LINE; ++i) begin
+      datas_n[word_addr + i] = mem_req_delayed.data[i*WORD_WIDTH+:WORD_WIDTH];
     end
-  endgenerate
 
-  assign enables = store_word ? enables_word : enables_byte;
-  // assign enables_o = enables;
+    /* verilator lint_off WIDTH  */
+    // datas_n[word_addr] = mem_req_delayed.data[WORD_WIDTH-1:0];
+    // datas_n[word_addr+1] = mem_req_delayed.data[2*WORD_WIDTH-1:WORD_WIDTH];
+    // datas_n[word_addr+2] = mem_req_delayed.data[3*WORD_WIDTH-1:2*WORD_WIDTH];
+    // datas_n[word_addr+3] = mem_req_delayed.data[4*WORD_WIDTH-1:3*WORD_WIDTH];
+    mem_req.data = req_evict_data;
+    mem_req.addr = req_address;
+    mem_req.req = req;
+    mem_req.req_store = req_store;
 
-  logic [FF_PER_WORD * STORE_DATA_WIDTH-1:0] internal_evict_data;
-  assign internal_evict_data = store_word ?
-                              evict_data : {FF_PER_WORD{evict_data[STORE_DATA_WIDTH - 1:0]}};
-
-  // assign evictD = internal_evict_data;
-
-  genvar i;
-  genvar wordi;
-  generate  //Main memory
-    for (i = 0; i < SPACES / FF_PER_WORD; i++) begin : g_all_ff
-      for (wordi = 0; wordi < FF_PER_WORD; wordi++) begin : g_word_ff
-        ff #(
-            .WIDTH(STORE_DATA_WIDTH)
-        ) flippyFloppy (
-            .clk(clk),
-            .enable(enables[i*FF_PER_WORD+wordi]),
-            .reset(1'b0),
-            .inp(internal_evict_data[(wordi+1)*STORE_DATA_WIDTH-1:wordi*STORE_DATA_WIDTH]),
-            .out(read_data[i*FF_PER_WORD+wordi])
-        );
-      end
-      // assign enables_o[i] = enables[i][0:0];
+    // READ LOGIC
+    for (int unsigned i = 0; i < WORDS_IN_LINE; ++i) begin
+      load_output[i*WORD_WIDTH+:WORD_WIDTH] = datas_q[word_addr+i];
     end
-  endgenerate
+    delayed_fill.data = load_output;
+    delayed_fill.addr = req_address;
+    delayed_fill.valid = req & ~req_store;
 
-  localparam integer unsigned FF_PER_LINE = FILL_DATA_WIDTH / STORE_DATA_WIDTH;
-  localparam integer unsigned LINES = SPACES / FF_PER_LINE;
-
-  logic [FILL_DATA_WIDTH-1:0] lines_out[LINES];
-  logic [$clog2(LINES) - 1:0] selected_line;
-  assign selected_line = address[$clog2(LINES)+$clog2(FF_PER_LINE)-1:$clog2(FF_PER_LINE)];
-
-  genvar i2;
-  generate
-    for (i = 0; i < LINES; i++) begin : g_line
-      for (i2 = 0; i2 < FF_PER_LINE; i2++) begin : g_ff_line
-        assign lines_out[i][(i2 + 1) * STORE_DATA_WIDTH - 1 : i2 * STORE_DATA_WIDTH] =
-              read_data[i * FF_PER_LINE + i2];
-      end
-    end
-  endgenerate
-
-  logic valid_out;
-  assign valid_out = req & ~store;
-
-  logic [FILL_DATA_WIDTH:0] delayed_result;
-  logic reset_bus;
+    fill_data = fill_out.data;
+    fill_address = fill_out.addr;
+    fill = fill_out.valid;
+  end
 
   nff #(
       .N(DATA_TRANSFER_TIME),
-      .WIDTH(FILL_DATA_WIDTH + 1)
+      .WIDTH(CACHE_LINE_WIDTH + ADDRESS_WIDTH + 2)
+  ) long_way_in (
+      .clk(clk),
+      .enable(1'b1),
+      .reset(mem_req_delayed.req),
+      .inp(mem_req),
+      .out(mem_req_delayed)
+  );
+
+  always_ff @(posedge clk) begin
+    if (mem_req_delayed.req_store & mem_req_delayed.req) begin
+      datas_q <= datas_n;
+    end
+  end
+
+
+  // READ LOGIC
+  struct packed {
+    logic [CACHE_LINE_WIDTH-1:0] data;
+    logic [ADDRESS_WIDTH-1:0] addr;
+    logic valid;
+  }
+      delayed_fill, fill_out;
+  nff #(
+      .N(DATA_TRANSFER_TIME),
+      .WIDTH(CACHE_LINE_WIDTH + ADDRESS_WIDTH + 1)
   ) long_way_back (
       .clk(clk),
       .enable(1'b1),
-      .reset(reset_bus),
-      .inp({valid_out, lines_out[selected_line]}),
-      .out(delayed_result)
+      .reset(fill_out.valid),
+      .inp(delayed_fill),
+      .out(fill_out)
   );
 
-  assign fill_data = delayed_result[FILL_DATA_WIDTH-1:0];
-  assign response_valid = delayed_result[FILL_DATA_WIDTH];
-  assign reset_bus = delayed_result[FILL_DATA_WIDTH];
-
-  //DEBUG
-  /*
-    assign data_out_out = read_data;
-    assign stAndReq = store & req;
-    assign ctrAddr = address[DEMUX_CTRL_WIDTH-1:0];
-    assign mem_o_isnt ={valid_out, lines_out[selected_line]};
-    assign evict_data_out = evict_data;
-    */
 
 endmodule
 

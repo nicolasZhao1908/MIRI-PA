@@ -68,8 +68,8 @@ module cache_top
       .read_data(cache_line),
       .miss(cache_miss),
 
-      // input fill from mem
-      .fill(mem_resp),
+      // input fill from mem and arbiter
+      .fill(mem_resp & arbiter_grant),
       .fill_data(mem_resp_data),
       .fill_addr(mem_resp_addr),
 

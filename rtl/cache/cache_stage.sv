@@ -63,14 +63,18 @@ module cache_stage
   stb_ctrl_e stb_ctrl;
 
   always_comb begin
-    stall_out =  cache_miss | mem_req_out | cache_write;
-    result_src_out  = result_src_w;
-    alu_res_out  = alu_res_w;
+    stall_out = cache_miss | mem_req_out | cache_write;
+    result_src_out = result_src_w;
+    alu_res_out = alu_res_w;
     read_data_out = (stb_read_valid) ? stb_read_data : cache_read_data;
     is_load = result_src_w == FROM_C;
-    stb_ctrl = IS_STORE;
+
     if (is_load) begin
       stb_ctrl = IS_LOAD;
+    end else if (is_store) begin
+      stb_ctrl = IS_STORE;
+    end else begin
+      stb_ctrl = OTHER;
     end
   end
 
@@ -111,7 +115,7 @@ module cache_stage
       .reset(reset),
       // don't flush when memory is requesting
       .enable(is_store & ~mem_req_out),
-      .data_size_in (data_size_w),
+      .data_size_in(data_size_w),
 
       // IS LOAD OR STORE?
       .stb_ctrl_in(stb_ctrl),
