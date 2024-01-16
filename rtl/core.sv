@@ -4,7 +4,18 @@ module core
   import brisc_pkg::*;
 (
     input logic clk,
-    input logic reset
+    input logic reset,
+
+
+    //For memory
+    input logic [CACHE_LINE_WIDTH-1:0] mem_fill_data,
+    input logic [ADDRESS_WIDTH-1:0] mem_fill_addr,
+    input logic mem_fill_valid,
+
+    output logic mem_req,
+    output logic mem_store,
+    output logic [ADDRESS_WIDTH-1:0] mem_addr,
+    output logic [CACHE_LINE_WIDTH-1:0] mem_data
     // TODO: put icache and dcache request and response
 );
   logic stall_F;
@@ -59,6 +70,22 @@ module core
   logic [REG_BITS-1:0] rd_WB;
   logic reg_write_WB;
 
+  //Logic for arb
+  logic arb_req_dcache;
+  logic arb_req_dcache_write;
+  logic [ADDRESS_WIDTH-1:0] arb_req_dcache_address;
+  logic [CACHE_LINE_WIDTH-1:0] arb_req_dcache_evict_data;
+
+  logic arb_req_icache;
+  logic arb_req_icache_write;
+  logic [ADDRESS_WIDTH-1:0] arb_req_icache_address;
+  logic [CACHE_LINE_WIDTH-1:0] arb_req_icache_evict_data;
+
+
+  logic grant_dcache;
+  logic grant_icache;
+
+
   fetch_stage fetch (
       .clk(clk),
       .reset(reset),
@@ -68,7 +95,19 @@ module core
       .pc_target_in(pc_target_EX_F),
       .pc_out(pc_F),
       .instr_out(instr_F),
-      .pc_plus4_out(pc_plus4_F)
+      .pc_plus4_out(pc_plus4_F),
+
+      //Cache
+      .arbiter_grant(grant_icache),
+      .arbiter_req(arb_req_icache),
+      .mem_req_addr(arb_req_icache_address),
+      .mem_req_data(arb_req_icache_evict_data),
+      .mem_req_write(arb_req_icache_write),
+
+    // MEMORY
+      .mem_resp(mem_fill_valid),
+      .mem_resp_data(mem_fill_data),
+      .mem_resp_addr(mem_fill_addr)
   );
 
   decode_stage decode (
@@ -162,13 +201,13 @@ module core
       .stall_in(),
       .flush_in(),
       .stall_out(),
-      .fill_in(),
-      .fill_data_in(),
-      .fill_addr_in(),
-      .mem_req_out(),
-      .mem_req_data_out(),
-      .mem_req_addr_out(),
-      .mem_req_write_out(),
+      .fill_in(mem_fill_valid),
+      .fill_data_in(mem_fill_data),
+      .fill_addr_in(mem_fill_addr),
+      .mem_req_out(arb_req_dcache),
+      .mem_req_data_out(arb_req_dcache_evict_data),
+      .mem_req_addr_out(arb_req_dcache_address),
+      .mem_req_write_out(arb_req_dcache_write),
       .alu_res_in(alu_res_EX),
       .write_data_in(write_data_EX),
       .pc_plus4_in(pc_plus4_EX),
@@ -225,5 +264,28 @@ module core
       .stall_D_out(stall_D),
       .flush_D_out(flush_D),
       .flush_EX_out(flush_EX)
+  );
+
+  arbiter arb
+    (
+    .clk(clk),
+
+    .mem_req_1(arb_req_dcache),
+    .mem_write_1(arb_req_dcache_write),
+    .mem_addr_1(arb_req_dcache_address),
+    .mem_data_1(arb_req_dcache_evict_data),
+
+    .mem_req_2(arb_req_icache),
+    .mem_write_2(arb_req_icache_write),
+    .mem_addr_2(arb_req_icache_address),
+    .mem_data_2(arb_req_icache_evict_data),
+
+    .grant_1(grant_dcache),
+    .grant_2(grant_icache),
+    .mem_req(mem_req),
+    .mem_write(mem_store),
+    .mem_addr(mem_addr),
+    .mem_data(mem_data)
+
   );
 endmodule

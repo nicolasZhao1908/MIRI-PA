@@ -11,7 +11,19 @@ module fetch_stage
     input logic [ADDRESS_WIDTH-1:0] pc_target_in,
     output logic [ILEN-1:0] instr_out,
     output logic [XLEN-1:0] pc_out,
-    output logic [XLEN-1:0] pc_plus4_out
+    output logic [XLEN-1:0] pc_plus4_out,
+
+    //Cache
+    input logic arbiter_grant,
+    output logic arbiter_req,
+    output logic [ADDRESS_WIDTH-1:0] mem_req_addr,
+    output logic [CACHE_LINE_WIDTH-1:0] mem_req_data,
+    output logic mem_req_write,
+
+    // MEMORY
+    input logic mem_resp,
+    input logic [CACHE_LINE_WIDTH-1:0] mem_resp_data,
+    input logic [ADDRESS_WIDTH-1:0] mem_resp_addr
 );
 
   logic [XLEN-1:0] pc_next;
@@ -29,5 +41,37 @@ module fetch_stage
       pc_out <= pc_next;
     end
   end
+
+  //Icache
+  cache_top icache (
+    // PIPELINE
+    .clk(clk),
+    .reset(1'b0),
+    .enable(1'b1),
+    .is_load(1'b0),
+    .addr(pc_out),
+    .data_size(W),
+    .miss(cache_miss),
+    .read_data(instr_out),
+
+    // ARBITER
+    .arbiter_grant(arbiter_grant),
+    .arbiter_req(arbiter_req),
+    .mem_req_addr(mem_req_addr),
+    .mem_req_data(mem_req_data),
+    .mem_req_write(mem_req_write),
+
+    // MEMORY
+    .mem_resp(mem_resp),
+    .mem_resp_data(mem_resp_data),
+    .mem_resp_addr(mem_resp_addr),
+
+    // SB
+    .stb_write_data(),
+    .stb_write_addr(),
+    .stb_read_valid(),
+    .stb_write(),
+    .stb_write_size()
+  );
 
 endmodule
