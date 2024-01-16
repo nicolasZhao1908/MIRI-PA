@@ -42,7 +42,6 @@ module decode_stage
 
   logic [ILEN-1:0] instr_w;
   logic [XLEN-1:0] imm_w;
-
   imm_src_e imm_src_w;
 
   ctrl ctrl_unit (
@@ -62,9 +61,6 @@ module decode_stage
       .data_size(data_size_out),
       .xcpt(xcpt_out)
   );
-  assign rs1_out = instr_w[19:15];
-  assign rs2_out = instr_w[24:20];
-  assign rd_out  = instr_w[11:7];
 
   regfile rfile (
       // IN
@@ -81,21 +77,27 @@ module decode_stage
   );
 
   always_comb begin
+    rs1_out = instr_w[19:15];
+    rs2_out = instr_w[24:20];
+    rd_out  = instr_w[11:7];
     unique case (imm_src_w)
       I_IMM: begin
-        assign imm_out = {{20{instr_w[31]}}, instr_w[31:20]};
+        imm_out = {{20{instr_w[31]}}, instr_w[31:20]};
       end
       S_IMM: begin
-        assign imm_out = {{20{instr_w[31]}}, instr_w[31:25], instr_w[11:7]};
+        imm_out = {{20{instr_w[31]}}, instr_w[31:25], instr_w[11:7]};
       end
       B_IMM: begin
-        assign imm_out = {{20{instr_w[31]}}, instr_w[7], instr_w[30:25], instr_w[11:8], 1'b0};
+        imm_out = {{20{instr_w[31]}}, instr_w[7], instr_w[30:25], instr_w[11:8], 1'b0};
       end
       J_IMM: begin
-        assign imm_out = {{12{instr_w[31]}}, instr_w[19:12], instr_w[20], instr_w[30:21], 1'b0};
+        imm_out = {{12{instr_w[31]}}, instr_w[19:12], instr_w[20], instr_w[30:21], 1'b0};
+      end
+      U_IMM: begin
+        imm_out = {instr_w[31:12], {12{1'b0}}};
       end
       default: begin
-        assign imm_out = 'bx;  // undefined
+        imm_out = 'bx;  // undefined
       end
     endcase
   end

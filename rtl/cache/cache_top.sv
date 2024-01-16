@@ -3,7 +3,7 @@
 module cache_top
   import brisc_pkg::*;
 #(
-    parameter integer unsigned NUM_LINES = NUM_CACHE_LINES,
+    parameter integer unsigned NUM_LINES  = NUM_CACHE_LINES,
     parameter integer unsigned ADDR_WIDTH = ADDRESS_WIDTH,
     parameter integer unsigned LINE_WIDTH = CACHE_LINE_WIDTH
 ) (

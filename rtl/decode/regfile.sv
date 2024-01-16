@@ -24,7 +24,7 @@ module regfile
   logic [REG_LENGTH-1:0] regs_q[REG_NUM];
 
   always_comb begin
-    // default
+    // Default
     assign regs_n = regs_q;
 
     if (enable & (rd_addr != 0)) begin

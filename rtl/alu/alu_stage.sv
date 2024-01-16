@@ -93,12 +93,18 @@ module alu_stage
       end
     endcase
 
-    assign src2 = (alu_src_w == FROM_IMM)? src2_w : imm_w;
-    assign pc_src_out = pc_src_e'((is_branch_w & zero_w) | is_jump_w);
-    assign pc_target_out = pc_w + imm_w;
-    assign write_data_out = src2_w;
-    assign xcpt_out = ((alu_res_out[1:0] == 0) & (data_size_w == W)) ? MEM_UNALIGNED: NO_XCPT;
-    assign data_size_out = data_size_w;
+    src2 = (alu_src_w == FROM_IMM) ? src2_w : imm_w;
+    pc_src_out = pc_src_e'((is_branch_w & zero_w) | is_jump_w);
+    pc_target_out = pc_w + imm_w;
+    write_data_out = src2_w;
+    xcpt_out = NO_XCPT;
+    if ((alu_res_out[1:0] == 0) & (data_size_w == W)) begin
+      xcpt_out = MEM_UNALIGNED;
+    end else if (alu_res_out > PC_DATA) begin
+      xcpt_out = ADDR_INVALID;
+    end
+
+    data_size_out = data_size_w;
   end
 
   alu alu_unit (
@@ -126,12 +132,12 @@ module alu_stage
       // CTRL SIGNALS
       reg_write_out <= 0;
       result_src_out <= result_src_e'(0);
-      mem_write_out <=  0;
-      is_branch_w <=  0;
-      is_jump_w <=  0;
-      alu_src_w <=  alu_src_e'(0);
-      alu_ctrl_w <=  alu_ctrl_e'(0);
-      data_size_w<=  data_size_e'(0);
+      mem_write_out <= 0;
+      is_branch_w <= 0;
+      is_jump_w <= 0;
+      alu_src_w <= alu_src_e'(0);
+      alu_ctrl_w <= alu_ctrl_e'(0);
+      data_size_w <= data_size_e'(0);
     end else if (~stall_in) begin
       pc_plus4_out <= pc_plus4_in;
       rd_out <= rd_in;
@@ -144,12 +150,12 @@ module alu_stage
       // CTRL SIGNALS
       reg_write_out <= reg_write_in;
       result_src_out <= result_src_in;
-      mem_write_out <=  mem_write_in;
-      is_branch_w <=  is_branch_in;
-      is_jump_w <=  is_jump_in;
-      alu_src_w <=  alu_src_in;
-      alu_ctrl_w <=  alu_ctrl_in;
-      data_size_w <=  data_size_in;
+      mem_write_out <= mem_write_in;
+      is_branch_w <= is_branch_in;
+      is_jump_w <= is_jump_in;
+      alu_src_w <= alu_src_in;
+      alu_ctrl_w <= alu_ctrl_in;
+      data_size_w <= data_size_in;
     end
   end
 endmodule

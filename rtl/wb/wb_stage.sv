@@ -7,6 +7,7 @@ module wb_stage
     input logic reset,
     input logic stall_in,
     input logic [XLEN-1:0] alu_res_in,
+    input logic [XLEN-1:0] pc_delta_in,
     input logic [XLEN-1:0] read_data_in,
     input logic [XLEN-1:0] pc_plus4_in,
     input logic [REG_BITS-1:0] rd_in,
@@ -33,6 +34,9 @@ module wb_stage
       end
       FROM_PC_NEXT: begin
         assign result_out = pc_plus4_w;
+      end
+      FROM_AUIPC: begin
+        assign result_out = pc_delta_in;
       end
       default: begin
         assign result_out = 'x;

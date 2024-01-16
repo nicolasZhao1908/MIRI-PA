@@ -9,7 +9,7 @@ module store_buffer
     input logic reset,
 
     // IF MEM IS NOT BUSY THEN enable=1
-    input logic enable,
+    input logic wait_mem,
 
     // IS LOAD, STORE OR OTHER?
     input stb_ctrl_e stb_ctrl_in,
@@ -36,10 +36,10 @@ module store_buffer
 
   // STB entry
   struct packed {
+    logic valid;
+    data_size_e data_size;
     logic [ADDRESS_WIDTH-1:0] addr;
     logic [XLEN-1:0] data;
-    data_size_e data_size;
-    logic valid;
   }
       entries_n[NUM_ENTRIES], entries_q[NUM_ENTRIES];
 
@@ -87,7 +87,7 @@ module store_buffer
     // Flush to $ when:
     //  a) is a LW and the data in the entry holds a byte
     //  b) is a ST and is not empty
-    //  c) is a ALU operation
+    //  c) is other operation that does not use the cache stage
     flush = ((stb_ctrl_in == IS_LOAD & data_size_in == W &
                     entries_q[found_idx].data_size == B & valid)
                   | ((stb_ctrl_in == IS_STORE & full)) & ~empty)
@@ -121,7 +121,7 @@ module store_buffer
       write_ptr_q <= '0;
       read_ptr_q <= '0;
       cnt_q <= '0;
-    end else if (enable) begin
+    end else if (~wait_mem) begin
       entries_q <= entries_n;
       write_ptr_q <= write_ptr_n;
       read_ptr_q <= read_ptr_n;

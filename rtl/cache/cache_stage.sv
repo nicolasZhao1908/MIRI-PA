@@ -19,6 +19,10 @@ module cache_stage
 
     output logic stall_out,
 
+    // FOR AUIPC
+    input logic [XLEN-1:0] pc_delta_in,
+    output logic [XLEN-1:0] pc_delta_out,
+
     // From memory
     input logic fill_in,
     input logic [CACHE_LINE_WIDTH-1:0] fill_data_in,
@@ -114,7 +118,7 @@ module cache_stage
       .clk(clk),
       .reset(reset),
       // don't flush when memory is requesting
-      .enable(is_store & ~mem_req_out),
+      .wait_mem(mem_req_out),
       .data_size_in(data_size_w),
 
       // IS LOAD OR STORE?
@@ -148,6 +152,7 @@ module cache_stage
       reg_write_out <= 0;
       result_src_w <= result_src_e'(0);
       data_size_w <= data_size_e'(0);
+      pc_delta_out <= 0;
     end else if (~stall_in) begin
       stb_write_data <= write_data_in;
       alu_res_w <= alu_res_in;
@@ -158,6 +163,7 @@ module cache_stage
       reg_write_out <= reg_write_in;
       result_src_w <= result_src_in;
       data_size_w <= data_size_in;
+      pc_delta_out <= pc_delta_in;
     end
   end
 endmodule

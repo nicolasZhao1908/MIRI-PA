@@ -1,12 +1,12 @@
 `include "brisc_pkg.svh"
+/* verilator lint_off WIDTH  */
 
 
 module memory
   import brisc_pkg::*;
 #(
     parameter integer unsigned DATA_TRANSFER_TIME = MEM_RESP_DELAY,
-    // taking into account the matrix mult test
-    parameter int unsigned MEM_DEPTH = 4352
+    parameter int unsigned MEM_DEPTH = brisc_pkg::MEM_DEPTH
 
 ) (
     input logic clk,
@@ -48,7 +48,6 @@ module memory
   logic [WORD_WIDTH-1:0] tmp;
   always_comb begin
 
-    /* verilator lint_off WIDTH  */
     // WRITE LOGIC
     word_addr = req_address[ADDRESS_WIDTH-1:BYTE_OFFSET_WIDTH];
     word_offset = req_address[WORD_OFFSET_WIDTH+BYTE_OFFSET_WIDTH-1:BYTE_OFFSET_WIDTH];
@@ -56,14 +55,9 @@ module memory
     datas_n = datas_q;
     // ASSUME ALIGNED SINCE UNALIGNED MEM OP THROWS AN XCPT IN ALU
     for (int unsigned i = 0; i < WORDS_IN_LINE; ++i) begin
-      datas_n[word_addr + i] = mem_req_delayed.data[i*WORD_WIDTH+:WORD_WIDTH];
+      datas_n[word_addr+i] = mem_req_delayed.data[i*WORD_WIDTH+:WORD_WIDTH];
     end
 
-    /* verilator lint_off WIDTH  */
-    // datas_n[word_addr] = mem_req_delayed.data[WORD_WIDTH-1:0];
-    // datas_n[word_addr+1] = mem_req_delayed.data[2*WORD_WIDTH-1:WORD_WIDTH];
-    // datas_n[word_addr+2] = mem_req_delayed.data[3*WORD_WIDTH-1:2*WORD_WIDTH];
-    // datas_n[word_addr+3] = mem_req_delayed.data[4*WORD_WIDTH-1:3*WORD_WIDTH];
     mem_req.data = req_evict_data;
     mem_req.addr = req_address;
     mem_req.req = req;

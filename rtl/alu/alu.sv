@@ -11,18 +11,19 @@ module alu
 );
 
   always_comb begin
+    result = 0;
     unique case (ctrl)
       ADD: begin
-        assign result = src1 + src2;
+        result = src1 + src2;
       end
       SUB: begin
-        assign result = src1 - src2;
+        result = src1 - src2;
       end
       AND: begin
-        assign result = src1 & src2;
+        result = src1 & src2;
       end
       OR: begin
-        assign result = src1 | src2;
+        result = src1 | src2;
       end
       default: begin
         // all possible bits for ctrl are covered

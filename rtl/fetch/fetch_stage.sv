@@ -13,7 +13,7 @@ module fetch_stage
     output logic [XLEN-1:0] pc_out,
     output logic [XLEN-1:0] pc_plus4_out,
 
-    //Cache
+    // Cache
     input logic arbiter_grant,
     output logic arbiter_req,
     output logic [ADDRESS_WIDTH-1:0] mem_req_addr,
@@ -31,47 +31,50 @@ module fetch_stage
   logic stall_pc;
 
   assign pc_next = (xcpt_in != NO_XCPT) ? PC_XCPT :
-                  ((pc_src_in == FROM_EX) ? pc_target_in : pc_out + 4);
+                  ((pc_src_in == FROM_A) ? pc_target_in : pc_out + 4);
   assign pc_plus4_out = pc_next;
+  assign stall_pc = (stall_in | cache_miss) & ~mem_resp;
 
   always_ff @(posedge clk) begin
     if (reset) begin
       pc_out <= PC_BOOT;
-    end else if (~stall_in) begin
+    end else if (~stall_pc) begin
       pc_out <= pc_next;
     end
   end
 
-  //Icache
+  // We use cache_top as the icache too since
+  // it has the interface with memory and arbiter
+
   cache_top icache (
-    // PIPELINE
-    .clk(clk),
-    .reset(1'b0),
-    .enable(1'b1),
-    .is_load(1'b0),
-    .addr(pc_out),
-    .data_size(W),
-    .miss(cache_miss),
-    .read_data(instr_out),
+      // PIPELINE
+      .clk(clk),
+      .reset(1'b0),
+      .enable(1'b1),
+      .is_load(1'b0),
+      .addr(pc_out),
+      .data_size(W),
+      .miss(cache_miss),
+      .read_data(instr_out),
 
-    // ARBITER
-    .arbiter_grant(arbiter_grant),
-    .arbiter_req(arbiter_req),
-    .mem_req_addr(mem_req_addr),
-    .mem_req_data(mem_req_data),
-    .mem_req_write(mem_req_write),
+      // ARBITER
+      .arbiter_grant(arbiter_grant),
+      .arbiter_req  (arbiter_req),
+      .mem_req_addr (mem_req_addr),
+      .mem_req_data (mem_req_data),
+      .mem_req_write(mem_req_write),
 
-    // MEMORY
-    .mem_resp(mem_resp),
-    .mem_resp_data(mem_resp_data),
-    .mem_resp_addr(mem_resp_addr),
+      // MEMORY
+      .mem_resp(mem_resp),
+      .mem_resp_data(mem_resp_data),
+      .mem_resp_addr(mem_resp_addr),
 
-    // SB
-    .stb_write_data(),
-    .stb_write_addr(),
-    .stb_read_valid(),
-    .stb_write(),
-    .stb_write_size()
+      // SB
+      .stb_write_data(),
+      .stb_write_addr(),
+      .stb_read_valid(),
+      .stb_write(),
+      .stb_write_size()
   );
 
 endmodule
