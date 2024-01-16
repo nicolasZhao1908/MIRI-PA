@@ -14,7 +14,7 @@ module memory
     input logic [ADDRESS_WIDTH-1:0] req_address,
     input logic [CACHE_LINE_WIDTH-1:0] req_evict_data,
     output logic [CACHE_LINE_WIDTH-1:0] fill_data,
-    output logic [CACHE_LINE_WIDTH-1:0] fill_address,
+    output logic [ADDRESS_WIDTH-1:0] fill_address,
     output logic fill
 
 );

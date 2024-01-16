@@ -2,32 +2,26 @@
 
 module arbiter
   import brisc_pkg::*;
-#(
-    parameter integer unsigned ADDRESS_WIDTH = 32,
-    parameter integer unsigned DATA_WIDTH = 32
-) (
+(
     input logic clk,
 
     input logic mem_req_1,
     input logic mem_write_1,
-    input data_size_e data_size_1,
     input logic [ADDRESS_WIDTH-1:0] mem_addr_1,
-    input logic [DATA_WIDTH-1:0] mem_data_1,
+    input logic [CACHE_LINE_WIDTH-1:0] mem_data_1,
 
     input logic mem_req_2,
     input logic mem_write_2,
-    input data_size_e data_size_2,
     input logic [ADDRESS_WIDTH-1:0] mem_addr_2,
-    input logic [DATA_WIDTH-1:0] mem_data_2,
+    input logic [CACHE_LINE_WIDTH-1:0] mem_data_2,
 
     output logic grant_1,
     output logic grant_2,
 
     output logic mem_req,
     output logic mem_write,
-    output data_size_e data_size,
     output logic [ADDRESS_WIDTH-1:0] mem_addr,
-    output logic [DATA_WIDTH-1:0] mem_data
+    output logic [CACHE_LINE_WIDTH-1:0] mem_data
 );
 
   logic gr2;
@@ -88,5 +82,4 @@ module arbiter
   assign mem_write = grant_1 ? mem_write_1 : mem_write_2;
   assign mem_addr = grant_1 ? mem_addr_1 : mem_addr_2;
   assign mem_data = grant_1 ? mem_data_1 : mem_data_2;
-  assign data_size = grant_1 ? data_size_1 : data_size_2;
 endmodule
