@@ -3,11 +3,6 @@ import random
 import cocotb
 from cocotb.triggers import Timer
 
-#async def tick(dut):
-#    dut.clk.value = 0
-#    await Timer(1, units="ns")
-#    dut.clk.value = 1
-#    await Timer(1, units="ns")
 
 @cocotb.test()
 async def test_ff_complete(dut):

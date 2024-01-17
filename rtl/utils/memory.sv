@@ -1,7 +1,6 @@
 `include "brisc_pkg.svh"
 /* verilator lint_off WIDTH  */
 
-
 module memory
   import brisc_pkg::*;
 #(

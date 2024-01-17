@@ -13,11 +13,11 @@ IARG=-I$(RTL_DIR) \
 	-I$(RTL_DIR)/wb
 
 export PYTHONPATH:=$(TB_DIR)/models:$(PYTHONPATH)
-VERILOG_SOURCES=$(RTL_DIR)/core.sv
+VERILOG_SOURCES=$(RTL_DIR)/core_top.sv
 
 EXTRA_ARGS+=--trace-fst --trace-structs $(IARG)
 
-TOPLEVEL=core
-MODULE=test_core
+TOPLEVEL=core_top
+MODULE=test_core_top
 
 include $(shell cocotb-config --makefiles)/Makefile.sim

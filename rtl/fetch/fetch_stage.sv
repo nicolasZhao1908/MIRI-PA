@@ -13,7 +13,7 @@ module fetch_stage
     output logic [XLEN-1:0] pc_out,
     output logic [XLEN-1:0] pc_plus4_out,
 
-    // Cache
+    // CACHE
     input logic arbiter_grant,
     output logic arbiter_req,
     output logic [ADDRESS_WIDTH-1:0] mem_req_addr,
