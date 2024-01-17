@@ -5,7 +5,7 @@ TESTS := tb/test_arbiter \
 		tb/test_cache \
 		tb/test_dcache \
 		tb/test_stb \
-		tb/test_core
+		tb/test_core_top
 
 .PHONY: $(TESTS) clean all
 

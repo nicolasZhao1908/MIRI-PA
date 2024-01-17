@@ -45,7 +45,6 @@ module cache_top
   logic [BYTE_WIDTH-1:0] read_byte;
 
   logic cache_write;
-  logic cache_miss;
   logic [LINE_WIDTH-1:0] cache_line;
   logic [XLEN-1:0] write_data;
   logic [XLEN-1:0] write_word;
@@ -66,7 +65,7 @@ module cache_top
 
       // output for cache
       .read_data(cache_line),
-      .miss(cache_miss),
+      .miss(miss),
 
       // input fill from mem and arbiter
       .fill(mem_resp & arbiter_grant),
@@ -82,8 +81,8 @@ module cache_top
   // STALL LOGIC: cache_miss & store_buffer_miss
 
   always_comb begin
-    miss = cache_miss;
-    arbiter_req = cache_evict | (cache_miss & (~stb_read_valid) & is_load);
+    // store (evict dirty line) | load (don't hit in either cache or STB)
+    arbiter_req = cache_evict | (miss & (~stb_read_valid));
     mem_req_write = cache_evict;
 
     // MUX result data

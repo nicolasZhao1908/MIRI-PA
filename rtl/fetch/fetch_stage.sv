@@ -12,6 +12,7 @@ module fetch_stage
     output logic [ILEN-1:0] instr_out,
     output logic [XLEN-1:0] pc_out,
     output logic [XLEN-1:0] pc_plus4_out,
+    output logic busy_out,
 
     // CACHE
     input logic arbiter_grant,
@@ -28,17 +29,16 @@ module fetch_stage
 
   logic [XLEN-1:0] pc_next;
   logic cache_miss;
-  logic stall_pc;
 
   assign pc_next = (xcpt_in != NO_XCPT) ? PC_XCPT :
                   ((pc_src_in == FROM_A) ? pc_target_in : pc_out + 4);
   assign pc_plus4_out = pc_next;
-  assign stall_pc = (stall_in | cache_miss) & ~mem_resp;
+  assign busy_out = cache_miss;
 
   always_ff @(posedge clk) begin
     if (reset) begin
       pc_out <= PC_BOOT;
-    end else if (~stall_pc) begin
+    end else if (~busy_out) begin
       pc_out <= pc_next;
     end
   end
@@ -70,11 +70,11 @@ module fetch_stage
       .mem_resp_addr(mem_resp_addr),
 
       // SB
-      .stb_write_data(),
-      .stb_write_addr(),
-      .stb_read_valid(),
-      .stb_write(),
-      .stb_write_size()
+      .stb_write_data('0),
+      .stb_write_addr('0),
+      .stb_read_valid('0),
+      .stb_write('0),
+      .stb_write_size('0)
   );
 
 endmodule

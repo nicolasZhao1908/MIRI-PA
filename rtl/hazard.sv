@@ -14,12 +14,17 @@ module hazard
     input logic reg_write_WB_in,
     input result_src_e result_src_A_in,
     input pc_src_e pc_src_in,
+    input logic dcache_busy_in,
+    input logic icache_busy_in,
     output fwd_src_e fwd_src1_out,
     output fwd_src_e fwd_src2_out,
     output stall_F_out,
     output stall_D_out,
+    output stall_A_out,
+    output stall_C_out,
     output flush_D_out,
-    output flush_A_out
+    output flush_A_out,
+    output flush_WB_out
 );
 
   logic load_stall_w;
@@ -59,13 +64,16 @@ module hazard
     // the value to be consumed of the next instr
     assign load_stall_w = (result_src_A_in == FROM_CACHE) &
                  ((rs1_D_in == rd_A_in) | (rs2_D_in == rd_A_in));
-    assign stall_F_out = load_stall_w;
-    assign stall_D_out = load_stall_w;
+    assign stall_F_out = load_stall_w | dcache_busy_in | icache_busy_in;
+    assign stall_D_out = load_stall_w | dcache_busy_in;
+    assign stall_C_out = dcache_busy_in;
+    assign stall_A_out = dcache_busy_in;
 
     // Flush on control hazard
     assign pc_taken_w = (pc_src_in == FROM_A);
-    assign flush_D_out = pc_taken_w;
+    assign flush_D_out = pc_taken_w | icache_busy_in;
     assign flush_A_out = load_stall_w;
+    assign flush_WB_out = dcache_busy_in;
   end
 
 

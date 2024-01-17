@@ -5,7 +5,7 @@ module wb_stage
 (
     input logic clk,
     input logic reset,
-    input logic stall_in,
+    input logic flush_in,
     input logic [XLEN-1:0] alu_res_in,
     input logic [XLEN-1:0] pc_delta_in,
     input logic [XLEN-1:0] read_data_in,
@@ -19,6 +19,7 @@ module wb_stage
     output logic reg_write_out,
     output logic [XLEN-1:0] result_out
 );
+
   logic [XLEN-1:0] alu_res_w;
   logic [XLEN-1:0] read_data_w;
   logic [XLEN-1:0] pc_plus4_w;
@@ -46,7 +47,7 @@ module wb_stage
 
   // Pipeline registers C->WB
   always_ff @(posedge clk) begin
-    if (reset) begin
+    if (reset | flush_in) begin
       alu_res_w <= 0;
       pc_plus4_w <= 0;
       rd_out <= 0;
@@ -54,7 +55,7 @@ module wb_stage
       // CTRL SIGNALS
       result_src_w <= result_src_e'(0);
       reg_write_out <= 0;
-    end else if (~stall_in) begin
+    end else begin
       alu_res_w <= alu_res_in;
       pc_plus4_w <= pc_plus4_in;
       rd_out <= rd_in;

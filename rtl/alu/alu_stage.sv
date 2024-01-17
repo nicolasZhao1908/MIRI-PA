@@ -100,7 +100,7 @@ module alu_stage
     xcpt_out = NO_XCPT;
     if ((alu_res_out[1:0] == 0) & (data_size_w == W)) begin
       xcpt_out = MEM_UNALIGNED;
-    end else if (alu_res_out > PC_DATA) begin
+    end else if (alu_res_out < PC_DATA) begin
       xcpt_out = ADDR_INVALID;
     end
 

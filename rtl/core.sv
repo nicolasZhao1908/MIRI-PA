@@ -18,11 +18,13 @@ module core
     output logic [CACHE_LINE_WIDTH-1:0] mem_data
     // TODO: put icache and dcache request and response
 );
+
   logic stall_F;
   pc_src_e pc_src_A_F;
   logic [XLEN-1:0] pc_F;
   logic [XLEN-1:0] pc_plus4_F;
   logic [ILEN-1:0] instr_F;
+  logic fetch_busy;
 
   logic stall_D;
   logic flush_D;
@@ -58,6 +60,7 @@ module core
   result_src_e result_src_A;
   logic mem_write_A;
   data_size_e data_size_A;
+  logic stall_A;
 
   logic [XLEN-1:0] pc_delta_C;
   logic [XLEN-1:0] read_data_C;
@@ -66,10 +69,13 @@ module core
   logic reg_write_C;
   result_src_e result_src_C;
   logic [XLEN-1:0] pc_plus4_C;
+  logic dcache_busy;
+  logic stall_C;
 
   logic [XLEN-1:0] result_WB;
   logic [REG_BITS-1:0] rd_WB;
   logic reg_write_WB;
+  logic flush_WB;
 
   // Logic for arb
   logic arb_req_dcache;
@@ -77,6 +83,7 @@ module core
   logic [ADDRESS_WIDTH-1:0] arb_req_dcache_address;
   logic [CACHE_LINE_WIDTH-1:0] arb_req_dcache_evict_data;
 
+  /* verilator lint_off UNOPTFLAT */
   logic arb_req_icache;
   logic arb_req_icache_write;
   logic [ADDRESS_WIDTH-1:0] arb_req_icache_address;
@@ -97,6 +104,7 @@ module core
       .pc_out(pc_F),
       .instr_out(instr_F),
       .pc_plus4_out(pc_plus4_F),
+      .busy_out(fetch_busy),
 
       //Cache
       .arbiter_grant(grant_icache),
@@ -150,7 +158,7 @@ module core
       // IN
       .clk(clk),
       .reset(reset),  // high reset
-      .stall_in(),
+      .stall_in(stall_A),
       .flush_in(flush_A),
       .fwd_src1_in(fwd_src1_A),
       .fwd_src2_in(fwd_src2_A),
@@ -199,9 +207,9 @@ module core
   cache_stage cache (
       .clk(clk),
       .reset(reset),
-      .stall_in(),
-      .flush_in(),
-      .stall_out(),
+      .stall_in(stall_C),
+      .flush_in(0),
+      .stall_out(dcache_busy),
       .fill_in(mem_fill_valid),
       .fill_data_in(mem_fill_data),
       .fill_addr_in(mem_fill_addr),
@@ -222,8 +230,8 @@ module core
       // CTRL signals
       .data_size_in(data_size_A),
       .reg_write_in(reg_write_A),
-      .mem_write_in(mem_write_A),
-      .result_src_in(result_src_A),
+      .mem_write_in(mem_write_A), // is_store
+      .result_src_in(result_src_A), // is_load
       .reg_write_out(reg_write_C),
       .result_src_out(result_src_C)
   );
@@ -231,7 +239,7 @@ module core
   wb_stage write_back (
       .clk(clk),
       .reset(reset),
-      .stall_in(),
+      .flush_in(flush_WB),
       .alu_res_in(alu_res_C),
       .read_data_in(read_data_C),
       .pc_plus4_in(pc_plus4_C),
@@ -261,14 +269,23 @@ module core
       .reg_write_C_in(reg_write_C),
       .reg_write_WB_in(reg_write_WB),
       .result_src_A_in(result_src_A),
+      .dcache_busy_in(dcache_busy),
+      .icache_busy_in(fetch_busy),
       .pc_src_in(pc_src_A_F),
       .fwd_src1_out(fwd_src1_A),
       .fwd_src2_out(fwd_src2_A),
       .stall_F_out(stall_F),
       .stall_D_out(stall_D),
       .flush_D_out(flush_D),
-      .flush_A_out(flush_A)
+      .flush_A_out(flush_A),
+      .stall_C_out(stall_C),
+      .stall_A_out(stall_A),
+      .flush_WB_out(flush_WB)
+
   );
+
+  // lw r1 <- ljla
+  // add r2 <- r1,r3
 
   arbiter arb (
       .clk(clk),

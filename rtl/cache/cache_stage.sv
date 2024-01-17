@@ -51,7 +51,7 @@ module cache_stage
 
   logic is_store;
   logic is_load;
-
+  /* verilator lint_off UNOPTFLAT */
   logic [XLEN-1:0] cache_write_data;
   logic [ADDRESS_WIDTH-1:0] cache_write_addr;
   logic [XLEN-1:0] cache_read_data;
@@ -71,13 +71,14 @@ module cache_stage
     result_src_out = result_src_w;
     alu_res_out = alu_res_w;
     read_data_out = (stb_read_valid) ? stb_read_data : cache_read_data;
-    is_load = result_src_w == FROM_C;
+    is_load = (result_src_w == FROM_C);
 
     if (is_load) begin
       stb_ctrl = IS_LOAD;
     end else if (is_store) begin
       stb_ctrl = IS_STORE;
     end else begin
+      stall_out = 0;
       stb_ctrl = OTHER;
     end
   end

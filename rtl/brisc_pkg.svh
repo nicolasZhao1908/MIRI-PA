@@ -21,7 +21,8 @@ package brisc_pkg;
   // Data address 0x4000
   // (0x4000 + 128x128x128x4x3)/4 ~= 16384 ~= 2^14
   // let's try 2^15
-  parameter int unsigned MEM_DEPTH = 1 << 15;
+  // parameter int unsigned MEM_DEPTH = 1 << 15;
+  parameter int unsigned MEM_DEPTH = 1 << 10;
   parameter int unsigned NUM_CACHE_LINES = 4;
   parameter int unsigned REG_BITS = $clog2(NUM_REG);
 
