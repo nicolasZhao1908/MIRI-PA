@@ -10,7 +10,7 @@
     length: .word 128
     sum: .word 0
 
-.text
+.section .text
 .global _start
 _start:
     addi t1, zero, 0 // int i = 0

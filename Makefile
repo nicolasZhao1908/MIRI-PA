@@ -12,7 +12,7 @@ TESTS := tb/test_arbiter \
 all: $(TESTS)
 
 $(TESTS):
-	@cd $@ && $(MAKE)
+	$(MAKE) -C $@
 
 clean:
 	$(foreach TEST, $(TESTS), $(MAKE) -C $(TEST) clean;)

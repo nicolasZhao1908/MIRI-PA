@@ -23,24 +23,25 @@ module wb_stage
   logic [XLEN-1:0] alu_res_w;
   logic [XLEN-1:0] read_data_w;
   logic [XLEN-1:0] pc_plus4_w;
+  logic [XLEN-1:0] pc_delta_w;
   result_src_e result_src_w;
 
   always_comb begin
     unique case (result_src_w)
       FROM_ALU: begin
-        assign result_out = alu_res_w;
+        result_out = alu_res_w;
       end
       FROM_CACHE: begin
-        assign result_out = read_data_w;
+        result_out = read_data_w;
       end
       FROM_PC_NEXT: begin
-        assign result_out = pc_plus4_w;
+        result_out = pc_plus4_w;
       end
       FROM_AUIPC: begin
-        assign result_out = pc_delta_in;
+        result_out = pc_delta_w;
       end
       default: begin
-        assign result_out = 'x;
+        result_out = 'x;
       end
     endcase
   end
@@ -55,6 +56,7 @@ module wb_stage
       // CTRL SIGNALS
       result_src_w <= result_src_e'(0);
       reg_write_out <= 0;
+      pc_delta_w <= 0;
     end else begin
       alu_res_w <= alu_res_in;
       pc_plus4_w <= pc_plus4_in;
@@ -63,6 +65,7 @@ module wb_stage
       // CTRL SIGNALS
       result_src_w <= result_src_in;
       reg_write_out <= reg_write_in;
+      pc_delta_w <= pc_delta_in;
     end
   end
 

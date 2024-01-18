@@ -60,7 +60,6 @@ module alu_stage
   logic [XLEN-1:0] pc_w;
   alu_src_e alu_src_w;
   alu_ctrl_e alu_ctrl_w;
-  data_size_e data_size_w;
   logic [XLEN-1:0] imm_w;
   logic zero_w;
   logic is_branch_w;
@@ -77,7 +76,7 @@ module alu_stage
         src1 = result_WB_in;
       end
       default: begin
-        src1 = rs1_data_in;
+        src1 = rs1_data_w;
       end
     endcase
 
@@ -89,22 +88,23 @@ module alu_stage
         src2_w = result_WB_in;
       end
       default: begin
-        src2_w = rs2_data_in;
+        src2_w = rs2_data_w;
       end
     endcase
 
-    src2 = (alu_src_w == FROM_IMM) ? src2_w : imm_w;
+    src2 = (alu_src_w == FROM_IMM) ? imm_w : src2_w;
+    write_data_out = src2_w;
     pc_src_out = pc_src_e'((is_branch_w & zero_w) | is_jump_w);
     pc_target_out = pc_w + imm_w;
-    write_data_out = src2_w;
-    xcpt_out = NO_XCPT;
-    if ((alu_res_out[1:0] == 0) & (data_size_w == W)) begin
-      xcpt_out = MEM_UNALIGNED;
-    end else if (alu_res_out < PC_DATA) begin
-      xcpt_out = ADDR_INVALID;
-    end
 
-    data_size_out = data_size_w;
+    xcpt_out = NO_XCPT;
+    if (mem_write_out == 1 | result_src_out == FROM_CACHE) begin
+      if ((alu_res_out[1:0] != 0) & (data_size_out == W)) begin
+        xcpt_out = MEM_UNALIGNED;
+      end else if (alu_res_out < PC_DATA) begin
+        xcpt_out = ADDR_INVALID;
+      end
+    end
   end
 
   alu alu_unit (
@@ -129,7 +129,7 @@ module alu_stage
       rs1_data_w <= 0;
       rs2_data_w <= 0;
       imm_w <= 0;
-      // CTRL SIGNALS
+      // Ctrl signals
       reg_write_out <= 0;
       result_src_out <= result_src_e'(0);
       mem_write_out <= 0;
@@ -137,7 +137,8 @@ module alu_stage
       is_jump_w <= 0;
       alu_src_w <= alu_src_e'(0);
       alu_ctrl_w <= alu_ctrl_e'(0);
-      data_size_w <= data_size_e'(0);
+      data_size_out <= data_size_e'(0);
+
     end else if (~stall_in) begin
       pc_plus4_out <= pc_plus4_in;
       rd_out <= rd_in;
@@ -147,7 +148,7 @@ module alu_stage
       rs1_data_w <= rs1_data_in;
       rs2_data_w <= rs2_data_in;
       imm_w <= imm_in;
-      // CTRL SIGNALS
+      // Ctrl signals
       reg_write_out <= reg_write_in;
       result_src_out <= result_src_in;
       mem_write_out <= mem_write_in;
@@ -155,7 +156,7 @@ module alu_stage
       is_jump_w <= is_jump_in;
       alu_src_w <= alu_src_in;
       alu_ctrl_w <= alu_ctrl_in;
-      data_size_w <= data_size_in;
+      data_size_out <= data_size_in;
     end
   end
 endmodule

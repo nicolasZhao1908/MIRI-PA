@@ -1,5 +1,5 @@
 `ifndef BRISC_PKG_SVH
-`define BRISC_PKG_SVH
+`define BRISC_PKG_SVH 
 
 `timescale 1ns / 1ps
 
@@ -22,7 +22,7 @@ package brisc_pkg;
   // (0x4000 + 128x128x128x4x3)/4 ~= 16384 ~= 2^14
   // let's try 2^15
   // parameter int unsigned MEM_DEPTH = 1 << 15;
-  parameter int unsigned MEM_DEPTH = 1 << 10;
+  parameter int unsigned MEM_DEPTH = 1 << 13;
   parameter int unsigned NUM_CACHE_LINES = 4;
   parameter int unsigned REG_BITS = $clog2(NUM_REG);
 
@@ -87,7 +87,7 @@ package brisc_pkg;
   } alu_src_e;
 
   typedef enum logic {
-    FROM_F  = 1'b0,
+    FROM_F = 1'b0,
     FROM_A = 1'b1
   } pc_src_e;
 
@@ -106,9 +106,9 @@ package brisc_pkg;
 
 
   typedef enum logic [1:0] {
-    IS_STORE = 2'b00,
-    IS_LOAD = 2'b01,
-    OTHER = 2'b10
+    OTHER = 2'b00,
+    IS_STORE = 2'b10,
+    IS_LOAD = 2'b01
   } stb_ctrl_e;
 
   typedef enum logic {

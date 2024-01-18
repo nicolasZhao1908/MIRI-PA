@@ -27,7 +27,17 @@ module arbiter
   logic gr2;
   logic ff_out;
 
+  //assign grant_1   = grant_1_stableizer_ff_out & gr1;
+  assign grant_1 = grant_1_stableizer_ff_out;
   assign gr2 = mem_req_2 & (ff_out | ~mem_req_1);
+  //assign grant_2   = grant_2_stableizer_ff_out & gr2;
+  assign grant_2   = grant_2_stableizer_ff_out;
+  assign mem_req   = grant_1 | grant_2;
+
+  // prioritize grant from instruction cache
+  assign mem_write = grant_1 ? mem_write_1 : mem_write_2;
+  assign mem_addr  = grant_1 ? mem_addr_1 : mem_addr_2;
+  assign mem_data  = grant_1 ? mem_data_1 : mem_data_2;
 
   ff #(
       .WIDTH(1)
@@ -37,6 +47,29 @@ module arbiter
       .reset(1'b0),
       .inp(gr2),
       .out(ff_out)
+  );
+
+
+  logic grant_1_stableizer_ff_out;
+  ff #(
+      .WIDTH(1)
+  ) stabelizer_ff1 (
+      .clk(~clk),
+      .enable(1'b1),
+      .reset(1'b0),
+      .inp(~(ff_out & mem_req_2) & mem_req_1),
+      .out(grant_1_stableizer_ff_out)
+  );
+
+  logic grant_2_stableizer_ff_out;
+  ff #(
+      .WIDTH(1)
+  ) stabelizer_ff2 (
+      .clk(~clk),
+      .enable(1'b1),
+      .reset(1'b0),
+      .inp(gr2),
+      .out(grant_2_stableizer_ff_out)
   );
 
   /* logic grant_1_start_allowed; //This code should work, and would make the arb faster, but for some verilog reason it creates undefined behavior...
@@ -52,34 +85,4 @@ module arbiter
     assign grant_1 = (grant_1_stableizer_ff_out & req_1) | (grant_1_start_allowed & ~clk);
     assign grant_2 = (grant_2_stableizer_ff_out & req_2) | (grant_2_start_allowed & ~clk);
     */
-
-  logic grant_1_stableizer_ff_out;
-  ff #(
-      .WIDTH(1)
-  ) stabelizer_ff1 (
-      .clk(~clk),
-      .enable(1'b1),
-      .reset(1'b0),
-      .inp(~(ff_out & mem_req_2) & mem_req_1),
-      .out(grant_1_stableizer_ff_out)
-  );
-  assign grant_1 = grant_1_stableizer_ff_out & (~(ff_out & mem_req_2) & mem_req_1);
-
-  logic grant_2_stableizer_ff_out;
-  ff #(
-      .WIDTH(1)
-  ) stabelizer_ff2 (
-      .clk(~clk),
-      .enable(1'b1),
-      .reset(1'b0),
-      .inp(gr2),
-      .out(grant_2_stableizer_ff_out)
-  );
-  assign grant_2 = grant_2_stableizer_ff_out & gr2;
-  assign mem_req = grant_1 | grant_2;
-
-  // prioritize grant from instruction cache
-  assign mem_write = grant_1 ? mem_write_1 : mem_write_2;
-  assign mem_addr = grant_1 ? mem_addr_1 : mem_addr_2;
-  assign mem_data = grant_1 ? mem_data_1 : mem_data_2;
 endmodule

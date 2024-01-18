@@ -13,7 +13,25 @@ IARG=-I$(RTL_DIR) \
 	-I$(RTL_DIR)/wb
 
 export PYTHONPATH:=$(TB_DIR)/models:$(PYTHONPATH)
-VERILOG_SOURCES=$(RTL_DIR)/core_top.sv
+VERILOG_SOURCES= $(RTL_DIR)/brisc_pkg.svh \
+				$(RTL_DIR)/core_top.sv \
+				$(RTL_DIR)/core.sv \
+				$(RTL_DIR)/hazard.sv \
+				$(RTL_DIR)/arbiter.sv \
+				$(RTL_DIR)/fetch/fetch_stage.sv \
+				$(RTL_DIR)/decode/decode_stage.sv \
+				$(RTL_DIR)/decode/ctrl.sv \
+				$(RTL_DIR)/decode/regfile.sv \
+				$(RTL_DIR)/alu/alu_stage.sv \
+				$(RTL_DIR)/alu/alu.sv \
+				$(RTL_DIR)/cache/cache_stage.sv \
+ 				$(RTL_DIR)/cache/cache_top.sv \
+ 				$(RTL_DIR)/cache/cache.sv \
+ 				$(RTL_DIR)/cache/store_buffer.sv \
+ 				$(RTL_DIR)/wb/wb_stage.sv \
+				$(RTL_DIR)/utils/memory.sv \
+				$(RTL_DIR)/utils/ff.sv \
+				$(RTL_DIR)/utils/nff.sv
 
 EXTRA_ARGS+=--trace-fst --trace-structs $(IARG)
 

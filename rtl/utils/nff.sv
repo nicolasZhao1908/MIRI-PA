@@ -12,13 +12,13 @@ module nff #(
     output logic [WIDTH - 1:0] out
 );
 
-  logic [WIDTH - 1:0] in_cable[N + 1];
+  logic [WIDTH - 1:0] in_cable[N];
 
   assign in_cable[0] = inp;
 
   genvar i;
   generate
-    for (i = 0; i < N; i++) begin : g_nff
+    for (i = 0; i < N - 1; i++) begin : g_nff
       ff #(
           .WIDTH(WIDTH),
           .RESET_VALUE(RESET_VALUE)

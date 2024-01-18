@@ -27,7 +27,7 @@ module regfile
     // Default
     assign regs_n = regs_q;
 
-    if (enable & (rd_addr != 0)) begin
+    if (rd_addr != 0) begin
       regs_n[rd_addr] = write_data;
     end
     assign rs1_data = regs_q[rs1_addr];

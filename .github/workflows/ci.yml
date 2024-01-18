@@ -10,10 +10,9 @@ jobs:
         - name: Lint all sv files
           uses: chipsalliance/verible-linter-action@main
           with:
-            config_file: 'utils/verible-lint.rules'
+            config_file: 'verible-lint.rules'
             paths: |
                 ./rtl
-                ./tb
             extensions: |
                 .sv
                 .v
