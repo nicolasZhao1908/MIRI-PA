@@ -9,7 +9,8 @@ module ctrl
     output logic reg_write,
     output imm_src_e imm_src,
     output result_src_e result_src,
-    output alu_src_e alu_src,
+    output alu_src1_e alu_src1,
+    output alu_src2_e alu_src2,
     output alu_ctrl_e alu_ctrl,
     output data_size_e data_size,
     output logic mem_write,
@@ -25,21 +26,27 @@ module ctrl
     is_branch = 1'b0;
     is_jump = 1'b0;
     alu_op = ADD_OP;
+    alu_src1 = FROM_RS1;
+    result_src = FROM_ALU;
     unique case (opcode)
+      OPCODE_END: begin
+        xcpt = NO_XCPT;
+      end
       OPCODE_AUIPC: begin
         reg_write = 1'b1;
         imm_src = U_IMM;
-        // alu_src = XXX
+        alu_src1 = FROM_PC;
+        alu_src2 = FROM_IMM;
         mem_write = 1'b0;
-        result_src = FROM_AUIPC;
+        result_src = FROM_ALU;
         is_branch = 1'b0;
         is_jump = 1'b0;
-        // alu_op = XXX
+        alu_op = ADD_OP;
       end
       OPCODE_LOAD: begin
         reg_write = 1'b1;
         imm_src = I_IMM;
-        alu_src = FROM_IMM;
+        alu_src2 = FROM_IMM;
         mem_write = 1'b0;
         result_src = FROM_CACHE;
         is_branch = 1'b0;
@@ -60,7 +67,7 @@ module ctrl
       OPCODE_STORE: begin
         reg_write = 1'b0;
         imm_src = S_IMM;
-        alu_src = FROM_IMM;
+        alu_src2 = FROM_IMM;
         mem_write = 1'b1;
         // result_src = XXX
         is_branch = 1'b0;
@@ -81,7 +88,7 @@ module ctrl
       OPCODE_R: begin
         reg_write = 1'b1;
         // imm_src = XXX
-        alu_src = FROM_RS2;
+        alu_src2 = FROM_RS2;
         mem_write = 1'b0;
         // result_src = XXX
         is_branch = 1'b0;
@@ -91,9 +98,9 @@ module ctrl
       OPCODE_BEQ: begin
         reg_write = 1'b0;
         imm_src = B_IMM;
-        alu_src = FROM_RS2;
+        alu_src2 = FROM_RS2;
         mem_write = 1'b0;
-        // result_src = XXX
+        result_src = FROM_ALU;
         is_branch = 1'b1;
         alu_op = SUB_OP;
         is_jump = 1'b0;
@@ -102,10 +109,10 @@ module ctrl
       OPCODE_IMM: begin
         reg_write = 1'b1;
         imm_src = I_IMM;
-        alu_src = FROM_RS2;
+        alu_src2 = FROM_IMM;
         mem_write = 1'b0;
         is_branch = 1'b0;
-        alu_op = SUB_OP;
+        alu_op = Rtype_OP;
         is_jump = 1'b0;
       end
 

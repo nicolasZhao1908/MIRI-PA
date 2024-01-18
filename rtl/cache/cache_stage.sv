@@ -20,9 +20,6 @@ module cache_stage
 
     input logic arbiter_grant_in,
 
-    // For AUIPC
-    input  logic [XLEN-1:0] pc_delta_in,
-    output logic [XLEN-1:0] pc_delta_out,
 
     // From memory
     input logic fill_in,
@@ -53,8 +50,9 @@ module cache_stage
 
   logic cache_write;
   logic stb_read_valid;
-  logic is_mem;
+
   logic mem_req;
+  logic mem_req_write;
 
   logic [XLEN-1:0] stb_read_data;
   logic [XLEN-1:0] stb_read_addr;
@@ -63,20 +61,18 @@ module cache_stage
   data_size_e stb_data_size;
   stb_ctrl_e stb_ctrl;
 
+
   always_comb begin
     read_data_out = (stb_read_valid) ? stb_read_data : cache_read_data;
     is_load = (result_src_out == FROM_C);
     stb_ctrl = OTHER;
 
-    is_mem = (is_load | is_store);
 
     if (is_load) begin
       stb_ctrl = IS_LOAD;
     end else if (is_store) begin
       stb_ctrl = IS_STORE;
     end
-    // TODO: mem_req_out = mem_req | ~arbiter_grant_in;
-    mem_req_out = mem_req;
   end
 
   cache_top dcache (
@@ -86,11 +82,12 @@ module cache_stage
       .addr(alu_res_out),
       .data_size(data_size_w),
       .read_data(cache_read_data),
-      .is_mem(is_mem),
+      .is_load(is_load),
+      .is_store(is_store),
 
       // Arbiter
       .arbiter_grant(arbiter_grant_in),
-      .mem_req(mem_req),
+      .mem_req(mem_req_out),
       .mem_req_addr(mem_req_addr_out),
       .mem_req_data(mem_req_data_out),
       .mem_req_write(mem_req_write_out),
@@ -150,8 +147,6 @@ module cache_stage
       reg_write_out <= 0;
       result_src_out <= result_src_e'(0);
       data_size_w <= data_size_e'(0);
-      pc_delta_out <= 0;
-
     end else if (~stall_in) begin
       stb_write_data <= write_data_in;
       alu_res_out <= alu_res_in;
@@ -163,7 +158,6 @@ module cache_stage
       reg_write_out <= reg_write_in;
       result_src_out <= result_src_in;
       data_size_w <= data_size_in;
-      pc_delta_out <= pc_delta_in;
     end
   end
 endmodule

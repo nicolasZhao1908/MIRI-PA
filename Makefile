@@ -7,6 +7,8 @@ TARGETS := tb/test_arbiter \
 		tb/test_stb \
 		tb/test_core_top
 CORETB := tb/test_core_top
+PROGRAMS = programs
+GTKWAVE = gtkwave
 
 
 all: $(TARGETS)
@@ -15,11 +17,12 @@ $(TARGETS):
 	$(MAKE) -C $@
 
 core: 
+	$(MAKE) -C $(PROGRAMS) memcpy
 	$(MAKE) -C $(CORETB)
 	$(MAKE) wave
 
 wave: tb/test_core_top/dump.fst tb/test_core_top/waves.tcl
-	gtkwave $< --script=$(word 2,$^)
+	$(GTKWAVE) $< --script=$(word 2,$^) #>>  /dev/null 2>&1
 
 clean:
 	rm -rf **/*/__pycache__

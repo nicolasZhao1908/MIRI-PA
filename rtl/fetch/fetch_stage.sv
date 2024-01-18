@@ -32,7 +32,7 @@ module fetch_stage
   always_ff @(posedge clk) begin
     if (reset) begin
       pc_out <= PC_BOOT;
-    end else if (~stall_in | xcpt_in) begin
+    end else if (~stall_in | xcpt_in | pc_src_in) begin
       pc_out <= pc_next;
     end
   end
@@ -46,7 +46,8 @@ module fetch_stage
 
       // We always load a word
       .data_size(W),
-      .is_mem(~reset),
+      .is_load  (~reset),
+      .is_store (0),
       .read_data(instr_out),
 
       // Arbiter

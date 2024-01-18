@@ -1,39 +1,133 @@
-set top [list clk reset]
-set fetch [list brisc_core.pc_F brisc_core.instr_F brisc_core.fetch.mem_req_out brisc_core.fetch.mem_req_addr]
-set icache [list brisc_core.grant_icache\
-                 brisc_core.fetch.icache.cache_unit.cache_sets_q\[0\].data\
-                 brisc_core.fetch.icache.cache_unit.cache_sets_q\[1\].data\
-                 brisc_core.fetch.icache.cache_unit.cache_sets_q\[2\].data\
-                 brisc_core.fetch.icache.cache_unit.cache_sets_q\[3\].data\
-                 ]
-set dcache [list brisc_core.grant_dcache\
-                 brisc_core.cache.dcache.cache_unit.cache_sets_q\[0\].data\
-                 brisc_core.cache.dcache.cache_unit.cache_sets_q\[1\].data\
-                 brisc_core.cache.dcache.cache_unit.cache_sets_q\[2\].data\
-                 brisc_core.cache.dcache.cache_unit.cache_sets_q\[3\].data\
-                 ]
-set mem [list mem.fill mem.fill_addr mem.fill_data]
+set top { clk reset }
+set xcpt { brisc_core.xcpt_D brisc_core.xcpt_A }
+set stall { brisc_core.stall_F 
+            brisc_core.stall_D 
+            brisc_core.stall_A 
+            brisc_core.stall_C 
+          }
+set fetch { brisc_core.pc_F
+            brisc_core.instr_F
+          }
+set core {
+            brisc_core.grant_icache
+            brisc_core.grant_dcache
+            mem.req
+            mem.req_addr
+            mem.req_store
+            mem.req_evict_data
+            mem.fill
+            mem.fill_addr
+            mem.fill_data
+          }
+set icache {
+                 brisc_core.fetch.icache.cache_unit.cache_sets_q[0].valid
+                 brisc_core.fetch.icache.cache_unit.cache_sets_q[0].data
+                 brisc_core.fetch.icache.cache_unit.cache_sets_q[1].valid
+                 brisc_core.fetch.icache.cache_unit.cache_sets_q[1].data
+                 brisc_core.fetch.icache.cache_unit.cache_sets_q[2].valid
+                 brisc_core.fetch.icache.cache_unit.cache_sets_q[2].data
+                 brisc_core.fetch.icache.cache_unit.cache_sets_q[3].valid
+                 brisc_core.fetch.icache.cache_unit.cache_sets_q[3].data
+            }
+set dcache { 
+                 brisc_core.cache.dcache.cache_unit.cache_sets_q[0].valid
+                 brisc_core.cache.dcache.cache_unit.cache_sets_q[0].data
+                 brisc_core.cache.dcache.cache_unit.cache_sets_q[1].valid
+                 brisc_core.cache.dcache.cache_unit.cache_sets_q[1].data
+                 brisc_core.cache.dcache.cache_unit.cache_sets_q[2].valid
+                 brisc_core.cache.dcache.cache_unit.cache_sets_q[2].data
+                 brisc_core.cache.dcache.cache_unit.cache_sets_q[3].valid
+                 brisc_core.cache.dcache.cache_unit.cache_sets_q[3].data
+            }
+
+set stb { 
+                 brisc_core.cache.stb.entries_q[0].valid
+                 brisc_core.cache.stb.entries_q[0].data
+                 brisc_core.cache.stb.entries_q[1].valid
+                 brisc_core.cache.stb.entries_q[1].data
+                 brisc_core.cache.stb.entries_q[2].valid
+                 brisc_core.cache.stb.entries_q[2].data
+                 brisc_core.cache.stb.entries_q[3].valid
+                 brisc_core.cache.stb.entries_q[3].data
+            }
+
+set alu { 
+                 brisc_core.alu.src1
+                 brisc_core.alu.src2
+                 brisc_core.alu_res_A
+                 brisc_core.alu.pc_target_out
+                 brisc_core.alu.pc_src_out
+            }
+
+proc addSignals {signals color prefix} {
+    set i 0
+    foreach sig $signals  {
+        set sufix [split $sig .]
+        set sufix [lindex $sufix end]
+        gtkwave::addSignalsFromList $sig
+        gtkwave::/Edit/Color_Format/$color
+        gtkwave::highlightSignalsFromList $sig
+        gtkwave::/Edit/Alias_Highlighted_Trace $prefix\_$sufix\_$i
+        gtkwave::/Edit/UnHighlight_All $prefix\_$sufix\_$i
+        if {$sufix == "data"} {
+            incr i
+        }
+    }
+}
+
+proc prettifySignal {signal color alias} {
+  gtkwave::addSignalsFromList $signal
+  gtkwave::/Edit/Color_Format/$color
+  gtkwave::highlightSignalsFromList $signal
+  gtkwave::/Edit/Alias_Highlighted_Trace $alias
+  gtkwave::/Edit/UnHighlight_All $alias
+}
 
 # Set view
 gtkwave::nop
-gtkwave::/Edit/Set_Trace_Max_Hier 0
+# show long name
+#gtkwave::/Edit/Set_Trace_Max_Hier 0
 gtkwave::/View/Show_Filled_High_Values 1
 gtkwave::/View/Show_Wave_Highlight 1
-gtkwave::/View/Show_Mouseover 1
 gtkwave::/Time/Zoom/Zoom_Best_Fit
+gtkwave::/Edit/UnHighlight_All
+
 
 # Adding signals
 gtkwave::addSignalsFromList $top
 gtkwave::/Edit/Color_Format/Indigo
 
 gtkwave::addSignalsFromList $fetch
-gtkwave::/Edit/Color_Format/Red
+gtkwave::/Edit/Color_Format/Yellow
 
-gtkwave::addSignalsFromList $icache
-gtkwave::/Edit/Color_Format/Orange
-
-gtkwave::addSignalsFromList $dcache
+gtkwave::addSignalsFromList $core
 gtkwave::/Edit/Color_Format/Violet
 
-gtkwave::addSignalsFromList $mem
-gtkwave::/Edit/Color_Format/Green
+gtkwave::addSignalsFromList $alu
+gtkwave::/Edit/Color_Format/Blue
+
+gtkwave::addSignalsFromList $stall
+gtkwave::/Edit/Color_Format/Red
+
+gtkwave::addSignalsFromList $xcpt
+gtkwave::/Edit/Color_Format/Red
+
+# gtkwave::addSignalsFromList brisc_core.fetch.icache.state_q
+# gtkwave::/Edit/Color_Format/Orange
+# gtkwave::highlightSignalsFromList brisc_core.fetch.icache.state_q
+# gtkwave::/Edit/Alias_Highlighted_Trace icache_state
+# gtkwave::/Edit/UnHighlight_All icache_state
+# addSignals $icache Orange icache_line
+
+prettifySignal brisc_core.cache.dcache.state_q Violet dcache_state
+addSignals $dcache Violet dcache_line
+addSignals $stb Yellow stb_entry
+
+set regColor Orange
+
+set registers {{10 a0} {5 t0} {6 t1} {7 t2} {28 t3} {29 t4} {30 t5} {31 t6}}
+
+
+foreach reg $registers {
+  prettifySignal brisc_core.decode.rfile.regs_n\[[lindex $reg 0]\] $regColor [lindex $reg 1]
+}

@@ -39,7 +39,8 @@ module core
   logic is_branch_D;
   logic is_jump_D;
   alu_ctrl_e alu_ctrl_D;
-  alu_src_e alu_src_D;
+  alu_src1_e alu_src1_D;
+  alu_src2_e alu_src2_D;
   data_size_e data_size_D;
   xcpt_e xcpt_D;
 
@@ -140,7 +141,8 @@ module core
       .is_jump_out(is_jump_D),
       .is_branch_out(is_branch_D),
       .alu_ctrl_out(alu_ctrl_D),
-      .alu_src_out(alu_src_D),
+      .alu_src1_out(alu_src1_D),
+      .alu_src2_out(alu_src2_D),
       .data_size_out(data_size_D),
       .xcpt_out(xcpt_D)
   );
@@ -179,7 +181,8 @@ module core
       .mem_write_in(mem_write_D),
       .result_src_in(result_src_D),
       .alu_ctrl_in(alu_ctrl_D),
-      .alu_src_in(alu_src_D),
+      .alu_src1_in(alu_src1_D),
+      .alu_src2_in(alu_src2_D),
       .is_branch_in(is_branch_D),
       .is_jump_in(is_jump_D),
       .data_size_in(data_size_D),
@@ -208,8 +211,6 @@ module core
       .alu_res_in(alu_res_A),
       .write_data_in(write_data_A),
       .pc_plus4_in(pc_plus4_A),
-      .pc_delta_in(pc_delta_A),
-      .pc_delta_out(pc_delta_C),
       .rd_in(rd_A),
       .alu_res_out(alu_res_C),
       .read_data_out(read_data_C),
@@ -231,7 +232,6 @@ module core
       .alu_res_in(alu_res_C),
       .read_data_in(read_data_C),
       .pc_plus4_in(pc_plus4_C),
-      .pc_delta_in(pc_delta_C),
       .rd_in(rd_C),
       .rd_out(rd_WB),
       .result_out(result_WB),

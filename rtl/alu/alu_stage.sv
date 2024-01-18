@@ -40,7 +40,8 @@ module alu_stage
     input logic reg_write_in,
     input alu_ctrl_e alu_ctrl_in,
     input result_src_e result_src_in,
-    input alu_src_e alu_src_in,
+    input alu_src1_e alu_src1_in,
+    input alu_src2_e alu_src2_in,
     input logic mem_write_in,
     input logic is_branch_in,
     input logic is_jump_in,
@@ -58,7 +59,10 @@ module alu_stage
   logic [XLEN-1:0] rs2_data_w;
   logic [XLEN-1:0] pc_next_w;
   logic [XLEN-1:0] pc_w;
-  alu_src_e alu_src_w;
+
+  alu_src1_e alu_src1_w;
+  alu_src2_e alu_src2_w;
+
   alu_ctrl_e alu_ctrl_w;
   logic [XLEN-1:0] imm_w;
   logic zero_w;
@@ -76,7 +80,11 @@ module alu_stage
         src1 = result_WB_in;
       end
       default: begin
-        src1 = rs1_data_w;
+        if (alu_src1_w == FROM_PC) begin
+          src1 = pc_w;
+        end else begin
+          src1 = rs1_data_w;
+        end
       end
     endcase
 
@@ -92,7 +100,7 @@ module alu_stage
       end
     endcase
 
-    src2 = (alu_src_w == FROM_IMM) ? imm_w : src2_w;
+    src2 = (alu_src2_w == FROM_IMM) ? imm_w : src2_w;
     write_data_out = src2_w;
     pc_src_out = pc_src_e'((is_branch_w & zero_w) | is_jump_w);
     pc_target_out = pc_w + imm_w;
@@ -135,7 +143,8 @@ module alu_stage
       mem_write_out <= 0;
       is_branch_w <= 0;
       is_jump_w <= 0;
-      alu_src_w <= alu_src_e'(0);
+      alu_src1_w <= alu_src1_e'(0);
+      alu_src2_w <= alu_src2_e'(0);
       alu_ctrl_w <= alu_ctrl_e'(0);
       data_size_out <= data_size_e'(0);
 
@@ -154,7 +163,8 @@ module alu_stage
       mem_write_out <= mem_write_in;
       is_branch_w <= is_branch_in;
       is_jump_w <= is_jump_in;
-      alu_src_w <= alu_src_in;
+      alu_src1_w <= alu_src1_in;
+      alu_src2_w <= alu_src2_in;
       alu_ctrl_w <= alu_ctrl_in;
       data_size_out <= data_size_in;
     end

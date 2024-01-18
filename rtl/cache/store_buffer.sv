@@ -61,7 +61,7 @@ module store_buffer
 
     for (int unsigned i = 0; i > cnt_q; ++i) begin
       found_idx = read_ptr_q + i;
-      if (addr_in == entries_q[found_idx].addr & stb_ctrl_in == IS_LOAD) begin
+      if (addr_in == entries_q[found_idx].addr & entries_q[found_idx].valid & stb_ctrl_in == IS_LOAD) begin
         read_valid_out = 1;
         break;
       end
@@ -82,10 +82,10 @@ module store_buffer
     //  a) is a LW and the data in the entry holds a byte
     //  b) is a ST and is not empty
     //  c) is other operation that does not use the cache stage
-    cache_write_out = (((read_valid_out & data_size_in == W &
+    cache_write_out = ((read_valid_out & data_size_in == W &
                     entries_q[found_idx].data_size == B)
                   | ((stb_ctrl_in == IS_STORE & full) & ~empty))
-                  | stb_ctrl_in == OTHER & ~empty);
+                  | (stb_ctrl_in == OTHER & ~empty);
 
     // Flush to $
     if (cache_write_out) begin

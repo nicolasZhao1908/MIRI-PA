@@ -2,12 +2,13 @@ LD = linker.ld
 CC = riscv64-unknown-linux-gnu-gcc 
 CFLAGS = -static -nostdlib -nostartfiles -march=rv32im -O0 -mabi=ilp32
 OBJCPY = riscv64-unknown-linux-gnu-objcopy
+OBJDMP = riscv64-unknown-linux-gnu-objdump
 OBJCPY_FLAGS = -O verilog --verilog-data-width=4
+OBJDMP_FLAGS = -d
 XCPT = xcpt.S
 MEMHEX = mem.hex
 
-TARGETS = adding \
-		memcpy \
+TARGETS = memcpy \
 		buffer_sum \
 		matmul
 

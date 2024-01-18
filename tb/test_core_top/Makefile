@@ -13,6 +13,7 @@ IARG=-I$(RTL_DIR) \
 	-I$(RTL_DIR)/wb
 
 export PYTHONPATH:=$(TB_DIR)/models:$(PYTHONPATH)
+
 VERILOG_SOURCES= $(RTL_DIR)/brisc_pkg.svh \
 				$(RTL_DIR)/core_top.sv \
 				$(RTL_DIR)/core.sv \
@@ -33,7 +34,7 @@ VERILOG_SOURCES= $(RTL_DIR)/brisc_pkg.svh \
 				$(RTL_DIR)/utils/ff.sv \
 				$(RTL_DIR)/utils/nff.sv
 
-EXTRA_ARGS+=--trace-fst --trace-structs $(IARG)
+EXTRA_ARGS+=--trace-fst --trace-structs $(IARG) --trace-max-array 16384 
 
 TOPLEVEL=core_top
 MODULE=test_core_top

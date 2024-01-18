@@ -44,6 +44,7 @@ package brisc_pkg;
   parameter logic [OPCODE_WIDTH-1:0] OPCODE_JUMP = 7'b1101111;
   // AUIPC
   parameter logic [OPCODE_WIDTH-1:0] OPCODE_AUIPC = 7'b0010111;
+  parameter logic [OPCODE_WIDTH-1:0] OPCODE_END = 7'b0000000;
 
   // ADDI x0, x0, 0
   parameter logic [ILEN-1:0] NOP = 32'h00000013;
@@ -77,14 +78,18 @@ package brisc_pkg;
   typedef enum logic [1:0] {
     FROM_ALU = 2'b00,
     FROM_CACHE = 2'b01,
-    FROM_PC_NEXT = 2'b10,
-    FROM_AUIPC = 2'b11
+    FROM_PC_NEXT = 2'b10
   } result_src_e;
+
+  typedef enum logic {
+    FROM_RS1 = 1'b0,
+    FROM_PC  = 1'b1
+  } alu_src1_e;
 
   typedef enum logic {
     FROM_RS2 = 1'b0,
     FROM_IMM = 1'b1
-  } alu_src_e;
+  } alu_src2_e;
 
   typedef enum logic {
     FROM_F = 1'b0,

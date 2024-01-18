@@ -34,7 +34,8 @@ module decode_stage
     output logic is_branch_out,
     output logic is_jump_out,
     output alu_ctrl_e alu_ctrl_out,
-    output alu_src_e alu_src_out,
+    output alu_src1_e alu_src1_out,
+    output alu_src2_e alu_src2_out,
     output data_size_e data_size_out,
     output xcpt_e xcpt_out
 );
@@ -53,7 +54,8 @@ module decode_stage
       .reg_write(reg_write_out),
       .imm_src(imm_src_w),
       .result_src(result_src_out),
-      .alu_src(alu_src_out),
+      .alu_src1(alu_src1_out),
+      .alu_src2(alu_src2_out),
       .alu_ctrl(alu_ctrl_out),
       .mem_write(mem_write_out),
       .is_branch(is_branch_out),

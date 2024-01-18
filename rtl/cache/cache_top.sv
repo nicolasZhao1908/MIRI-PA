@@ -14,7 +14,8 @@ module cache_top
     input logic [ADDR_WIDTH-1:0] addr,
     input data_size_e data_size,
     output logic [XLEN-1:0] read_data,
-    input logic is_mem,
+    input logic is_load,
+    input logic is_store,
 
     // ARBITER
     input logic arbiter_grant,
@@ -46,9 +47,10 @@ module cache_top
   logic [LINE_WIDTH-1:0] cache_line;
   logic [XLEN-1:0] write_data;
   logic [XLEN-1:0] write_word;
+  logic [ADDRESS_WIDTH-1:0] evict_addr;
   logic cache_evict;
   logic cache_miss;
-  logic [ADDRESS_WIDTH-1:0] evict_addr;
+  logic can_fill, can_fill_w;
 
   cache #(
       .LINE_WIDTH(LINE_WIDTH)
@@ -57,16 +59,19 @@ module cache_top
       .reset(reset),
       .data_size(data_size),
       .addr(addr),
+      .grant(arbiter_grant),
 
       // Cache only receives writes from STB
       .cache_write(stb_write),
       .write_data (stb_write_data),
+      .write_addr (stb_write_addr),
 
       .read_data(cache_line),
       .miss(cache_miss),
+      .is_mem(is_load | is_store),
 
       // Fill: requested memory line goes to cache
-      .fill(mem_resp & arbiter_grant),
+      .fill(can_fill),
       .fill_data(mem_resp_data),
       .fill_addr(mem_resp_addr),
 
@@ -76,11 +81,44 @@ module cache_top
       .evict_addr(evict_addr)
   );
 
+  enum logic [1:0] {
+    FREE,
+    WAIT_EVICT,
+    WAIT_FILL
+  }
+      state_q, state_n;
+
   always_comb begin
     // store (evict dirty line) OR load (don't hit in either cache or STB)
-    mem_req = (cache_evict | (cache_miss & ~stb_read_valid)) & is_mem;
-    mem_req_addr = cache_evict ? evict_addr : addr;
+    can_fill = mem_resp & arbiter_grant & (mem_resp_addr == {addr[ADDRESS_WIDTH-1:OFFSET_WIDTH], {OFFSET_WIDTH{1'b0}}});
+    // for some reason verilator needs it
+    can_fill_w = mem_resp & arbiter_grant & (mem_resp_addr == {addr[ADDRESS_WIDTH-1:OFFSET_WIDTH], {OFFSET_WIDTH{1'b0}}});
+    ;
+    mem_req = (cache_evict | ((cache_miss & ~stb_read_valid) & is_load));
+    mem_req_addr = cache_evict ? evict_addr : {addr[ADDRESS_WIDTH-1:OFFSET_WIDTH], {OFFSET_WIDTH{1'b0}}};
     mem_req_write = cache_evict;
+
+    unique case (state_q)
+      WAIT_EVICT: begin
+        if (arbiter_grant) begin
+          mem_req = 0;
+          state_n = FREE;
+        end
+      end
+      WAIT_FILL: begin
+        state_n = can_fill_w ? FREE : WAIT_FILL;
+      end
+      FREE: begin
+        state_n = FREE;
+        if (mem_req) begin
+          if (mem_req_write) begin
+            state_n = WAIT_EVICT;
+          end else begin
+            state_n = WAIT_FILL;
+          end
+        end
+      end
+    endcase
 
     // MUX result data
     word_offset = addr[OFFSET_WIDTH-1:OFFSET_WIDTH-WORD_OFFSET_WIDTH];
@@ -88,5 +126,13 @@ module cache_top
     read_word   = cache_line[WORD_WIDTH*word_offset+:WORD_WIDTH];
     read_byte   = cache_line[BYTE_WIDTH*byte_offset+:BYTE_WIDTH];
     read_data   = (data_size == W) ? read_word : {{24{1'b0}}, read_byte};
+  end
+
+  always_ff @(posedge clk) begin
+    if (reset) begin
+      state_q <= FREE;
+    end else begin
+      state_q <= state_n;
+    end
   end
 endmodule

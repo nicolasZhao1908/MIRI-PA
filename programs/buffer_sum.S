@@ -6,9 +6,9 @@
 // }
 
 .data
-    a: .fill 128, 4, 1
-    length: .word 128
     sum: .word 0
+    length: .word 128
+    a: .fill 128, 4, 1
 
 .section .text
 .global _start
@@ -25,7 +25,9 @@ loop:
     addi t1, t1, 1
     j loop
 endloop:
-    la a1, sum   // int* sum;
-    sw a0, 0(a1) // store result in sum
+    la a0, sum   // int* sum;
+    sw t3, 0(a0) // store result in sum
+    add t0, t0, 1
+    lw t3, 64(a0) // check evict it WORKS   
 end:    
     j end

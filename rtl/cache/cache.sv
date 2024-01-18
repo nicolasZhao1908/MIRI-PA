@@ -13,7 +13,10 @@ module cache
     input logic cache_write,
     input logic [ADDRESS_WIDTH - 1:0] addr,
     input logic [XLEN-1:0] write_data,
+    input logic [ADDRESS_WIDTH-1:0] write_addr,
     input data_size_e data_size,
+    input logic grant,
+    input logic is_mem,
 
     // Mem fill (lines from memory to cache)
     // happens on a load miss only
@@ -39,6 +42,10 @@ module cache
 
   // Cache set and tag from address
   logic [SET_WIDTH-1:0] addr_set;
+  logic [SET_WIDTH-1:0] fill_addr_set;
+  logic [SET_WIDTH-1:0] write_addr_set;
+  logic [TAG_WIDTH - 1:0] fill_addr_tag;
+  logic [TAG_WIDTH - 1:0] write_addr_tag;
   logic [TAG_WIDTH - 1:0] addr_tag;
   logic [CACHE_LINE_WIDTH - 1:0] cache_line_w;
   logic [BYTE_WIDTH - 1:0] write_byte;
@@ -58,15 +65,20 @@ module cache
   always_comb begin
     addr_set = addr[SET_WIDTH+OFFSET_WIDTH-1:OFFSET_WIDTH];
     addr_tag = addr[ADDRESS_WIDTH-1:SET_WIDTH+OFFSET_WIDTH];
+    write_addr_set = write_addr[SET_WIDTH+OFFSET_WIDTH-1:OFFSET_WIDTH];
+    write_addr_tag = write_addr[ADDRESS_WIDTH-1:SET_WIDTH+OFFSET_WIDTH];
+    fill_addr_set = fill_addr[SET_WIDTH+OFFSET_WIDTH-1:OFFSET_WIDTH];
+    fill_addr_tag = fill_addr[ADDRESS_WIDTH-1:SET_WIDTH+OFFSET_WIDTH];
 
     word_offset = addr[WORD_OFFSET_WIDTH+BYTE_OFFSET_WIDTH-1:BYTE_OFFSET_WIDTH];
     byte_offset = addr[OFFSET_WIDTH-1:0];
 
-    miss = ~((addr_tag == cache_sets_q[addr_set].tag) & cache_sets_q[addr_set].valid);
+    miss = ~((addr_tag == cache_sets_q[addr_set].tag) & cache_sets_q[addr_set].valid) & is_mem;
 
-    evict = (cache_sets_q[addr_set].dirty & cache_write) & (fill | miss);
-    evict_data = cache_sets_q[addr_set].data;
-    evict_addr = {cache_sets_q[addr_set].tag, addr_set, {OFFSET_WIDTH{1'b0}}};
+    evict = (cache_sets_q[write_addr_set].dirty & cache_sets_q[write_addr_set].valid) & (miss | cache_write);
+    evict_data = cache_sets_q[write_addr_set].data;
+    evict_addr = {cache_sets_q[write_addr_set].tag, write_addr_set, {OFFSET_WIDTH{1'b0}}};
+
 
     read_data = cache_sets_q[addr_set].data;
     cache_line_w = cache_sets_q[addr_set].data;
@@ -82,17 +94,18 @@ module cache
     end else begin
       cache_line_w[byte_offset*BYTE_OFFSET_WIDTH+:BYTE_WIDTH] = write_byte;
     end
+
     // prioritize fill over cache write (tho probably does not matter)
     if (fill) begin
-      cache_sets_n[addr_set].data  = fill_data;
-      cache_sets_n[addr_set].tag   = addr_tag;
-      cache_sets_n[addr_set].dirty = 0;
-      cache_sets_n[addr_set].valid = 1;
+      cache_sets_n[fill_addr_set].data  = fill_data;
+      cache_sets_n[fill_addr_set].tag   = fill_addr_tag;
+      cache_sets_n[fill_addr_set].dirty = 0;
+      cache_sets_n[fill_addr_set].valid = 1;
       // writes from STB
     end else if (cache_write) begin
-      cache_sets_n[addr_set].data  = cache_line_w;
-      cache_sets_n[addr_set].tag   = addr_tag;
-      cache_sets_n[addr_set].dirty = 1;
+      cache_sets_n[write_addr_set].data  = cache_line_w;
+      cache_sets_n[write_addr_set].tag   = write_addr_tag;
+      cache_sets_n[write_addr_set].dirty = 1;
     end
   end
 
