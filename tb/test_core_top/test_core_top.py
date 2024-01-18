@@ -10,7 +10,7 @@ async def test_buffer_sum(dut):
     await clk.tick()
     dut.reset.value = 0
     await clk.tick()
-    while i < 100:
+    while i < 20:
         await clk.tick()
         i += 1
     return

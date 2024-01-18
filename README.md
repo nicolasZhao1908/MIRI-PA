@@ -25,14 +25,18 @@ Requires [riscv-gnu-toolchain](https://github.com/riscv-collab/riscv-gnu-toolcha
 to be installed.
 
 ```bash
-cd tests
-make
+# Available targets are: buffer_sum, memcpy, matmul
+make -C <program_name>
 ```
 
 ## Running testbench
 
 ```bash
-pip install -r requirements.txt # Install dependencies
+ # Install dependencies
+pip install -r requirements.txt
+# Run a test
+make -C tb/<test_directory>
+# Or run all tests
 make
 ```
 
