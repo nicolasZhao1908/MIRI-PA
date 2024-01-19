@@ -24,7 +24,6 @@ memcpy: memcpy.elf
 matmul: matmul.elf
 	$(OBJCPY) $(OBJCPY_FLAGS) $< $(MEMHEX)
 
-# Create .elf from .S
 %.elf: %.S
 	$(CC) ${CFLAGS} -T ${LD} $< $(XCPT) -o $@
 

@@ -24,6 +24,7 @@ package brisc_pkg;
   // parameter int unsigned MEM_DEPTH = 1 << 15;
   parameter int unsigned MEM_DEPTH = 1 << 13;
   parameter int unsigned NUM_CACHE_LINES = 4;
+  parameter int unsigned NUM_ROB_ENTRIES = 1 << 4;
   parameter int unsigned REG_BITS = $clog2(NUM_REG);
 
   parameter logic [XLEN-1:0] PC_BOOT = 'h00001000;
@@ -128,6 +129,15 @@ package brisc_pkg;
     UNDEF_INSTR = 2'b10,
     ADDR_INVALID = 2'b11
   } xcpt_e;
+
+  typedef struct packed {
+    xcpt_e xcpt;
+    logic [XLEN-1:0] result;
+    logic [REG_BITS-1:0] dest;
+    logic [$clog2(NUM_ROB_ENTRIES)-1:0] ticket;
+    logic req;
+    logic store;
+  } rob_req_t;
 
 endpackage
 

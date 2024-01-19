@@ -27,6 +27,7 @@ module ctrl
     is_jump = 1'b0;
     alu_op = ADD_OP;
     alu_src1 = FROM_RS1;
+    alu_src2 = FROM_RS2;
     result_src = FROM_ALU;
     unique case (opcode)
       OPCODE_END: begin
@@ -89,6 +90,7 @@ module ctrl
         reg_write = 1'b1;
         mem_write = 1'b0;
         // imm_src = XXX
+        alu_src1 = FROM_RS1;
         alu_src2 = FROM_RS2;
         alu_op = Rtype_OP;
         // result_src = XXX
@@ -139,7 +141,7 @@ module ctrl
       end
       Rtype_OP: begin
         case (funct3)
-          // ADD, ADDI, SUB
+          // ADD, ADDI, SUB, MUL
           3'b000: begin
             if (opcode[5] & funct7[5]) begin
               alu_ctrl = SUB;
