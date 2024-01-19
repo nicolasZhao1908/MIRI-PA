@@ -73,18 +73,22 @@ module store_buffer
     read_data_out = entries_q[found_idx].data;
     read_addr_out = entries_q[found_idx].addr;
 
-    cache_write_data_out = entries_q[found_idx].data;
-    cache_write_addr_out = entries_q[found_idx].addr;
-    data_size_out = entries_q[found_idx].data_size;
+    cache_write_data_out = entries_q[read_ptr_q].data;
+    cache_write_addr_out = entries_q[read_ptr_q].addr;
+    data_size_out = entries_q[read_ptr_q].data_size;
 
     // The only interaction between STB and cache is writing to the cache
     // Flush to $ when:
     //  a) is a LW and the data in the entry holds a byte
     //  b) is a ST and is not empty
     //  c) is other operation that does not use the cache stage
-    cache_write_out = ((read_valid_out & data_size_in == W &
-                    entries_q[found_idx].data_size == B)
-                  | ((stb_ctrl_in == IS_STORE & full) & ~empty))
+    // cache_write_out = ((read_valid_out & data_size_in == W &
+    //                 entries_q[found_idx].data_size == B)
+    //               | ((stb_ctrl_in == IS_STORE & full) & ~empty))
+    //               | (stb_ctrl_in == OTHER & ~empty);
+
+    cache_write_out = (
+                  ((stb_ctrl_in == IS_STORE & full) & ~empty))
                   | (stb_ctrl_in == OTHER & ~empty);
 
     // Flush to $
