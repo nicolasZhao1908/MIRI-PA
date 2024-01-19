@@ -7,7 +7,7 @@ module cache_top
     parameter integer unsigned ADDR_WIDTH = ADDRESS_WIDTH,
     parameter integer unsigned LINE_WIDTH = CACHE_LINE_WIDTH
 ) (
-    // PIPELINE
+    // Pipeline
     input logic clk,
     input logic reset,
 
@@ -17,10 +17,10 @@ module cache_top
     input logic is_load,
     input logic is_store,
 
-    // ARBITER
+    // Arbiter
     input logic arbiter_grant,
 
-    // MEMORY
+    // Memory
     output logic mem_req,
     output logic mem_req_write,
     output logic [ADDR_WIDTH-1:0] mem_req_addr,
@@ -29,7 +29,7 @@ module cache_top
     input logic [LINE_WIDTH-1:0] mem_resp_data,
     input logic [ADDR_WIDTH-1:0] mem_resp_addr,
 
-    // SB
+    // STB
     input logic [XLEN-1:0] stb_write_data,
     input logic [ADDR_WIDTH-1:0] stb_write_addr,
     input logic stb_write,
@@ -82,18 +82,17 @@ module cache_top
   );
 
   enum logic [1:0] {
-    FREE,
+    IDLE,
     WAIT_EVICT,
     WAIT_FILL
   }
       state_q, state_n;
 
   always_comb begin
-    // store (evict dirty line) OR load (don't hit in either cache or STB)
+    // Store (evict dirty line) OR load (don't hit in either cache or STB)
     can_fill = mem_resp & arbiter_grant & (mem_resp_addr == {addr[ADDRESS_WIDTH-1:OFFSET_WIDTH], {OFFSET_WIDTH{1'b0}}});
-    // for some reason verilator needs it
+    // For some reason verilator needs it (it warns combinational loop)
     can_fill_w = mem_resp & arbiter_grant & (mem_resp_addr == {addr[ADDRESS_WIDTH-1:OFFSET_WIDTH], {OFFSET_WIDTH{1'b0}}});
-    ;
     mem_req = (cache_evict | ((cache_miss & ~stb_read_valid) & is_load));
     mem_req_addr = cache_evict ? evict_addr : {addr[ADDRESS_WIDTH-1:OFFSET_WIDTH], {OFFSET_WIDTH{1'b0}}};
     mem_req_write = cache_evict;
@@ -102,14 +101,14 @@ module cache_top
       WAIT_EVICT: begin
         if (arbiter_grant) begin
           mem_req = 0;
-          state_n = FREE;
+          state_n = IDLE;
         end
       end
       WAIT_FILL: begin
-        state_n = can_fill_w ? FREE : WAIT_FILL;
+        state_n = can_fill_w ? IDLE : WAIT_FILL;
       end
-      FREE: begin
-        state_n = FREE;
+      IDLE: begin
+        state_n = IDLE;
         if (mem_req) begin
           if (mem_req_write) begin
             state_n = WAIT_EVICT;
@@ -130,7 +129,7 @@ module cache_top
 
   always_ff @(posedge clk) begin
     if (reset) begin
-      state_q <= FREE;
+      state_q <= IDLE;
     end else begin
       state_q <= state_n;
     end

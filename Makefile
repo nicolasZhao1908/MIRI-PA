@@ -7,7 +7,7 @@ TARGETS := tb/test_arbiter \
 		tb/test_stb \
 		tb/test_core_top
 CORETB := tb/test_core_top
-PROGRAMS = programs
+PROGDIR = programs
 GTKWAVE = gtkwave
 
 
@@ -17,10 +17,10 @@ $(TARGETS):
 	$(MAKE) -C $@
 
 core: 
-	$(MAKE) -C $(PROGRAMS) memcpy
+	$(MAKE) -C $(PROGDIR) $(PROG)
 	$(MAKE) -C $(CORETB)
 
-wave: tb/test_core_top/dump.fst tb/test_core_top/waves.tcl
+waves: tb/test_core_top/dump.fst tb/test_core_top/waves.tcl
 	$(GTKWAVE) $< --script=$(word 2,$^) > /dev/null 2>&1 &
 
 clean:

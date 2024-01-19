@@ -3,24 +3,14 @@ from clock import BRiscClock
 
 
 @cocotb.test()
-async def test_buffer_sum(dut):
+async def test_core(dut):
     i = 0
     clk = BRiscClock(dut.clk)
     dut.reset.value = 1
     await clk.tick()
     dut.reset.value = 0
     await clk.tick()
-    while i < 3000:
+    while i < 2000:
         await clk.tick()
         i += 1
-    return
-
-
-@cocotb.test()
-async def test_memcpy(dut):
-    return
-
-
-@cocotb.test()
-async def test_matmul(dut):
     return

@@ -28,7 +28,6 @@ module memory
 
   logic [CACHE_LINE_WIDTH-1:0] read_data;
   logic [ADDRESS_WIDTH-BYTE_OFFSET_WIDTH-1:0] word_addr;
-  logic [WORD_OFFSET_WIDTH-1:0] word_offset;
 
   initial begin
     // read both instructions and data
@@ -53,17 +52,17 @@ module memory
   always_comb begin
     // Write logic
     word_addr = req_addr[ADDRESS_WIDTH-1:BYTE_OFFSET_WIDTH];
-    word_offset = req_addr[WORD_OFFSET_WIDTH+BYTE_OFFSET_WIDTH-1:BYTE_OFFSET_WIDTH];
 
     datas_n = datas_q;
-    for (int unsigned i = 0; i < WORDS_IN_LINE; ++i) begin
-      datas_n[word_addr+i] = mem_req_delayed.data[i*WORD_WIDTH+:WORD_WIDTH];
-    end
 
     mem_req_aux.data = req_evict_data;
     mem_req_aux.addr = req_addr;
     mem_req_aux.req = req;
     mem_req_aux.req_store = req_store;
+
+    for (int unsigned i = 0; i < WORDS_IN_LINE; ++i) begin
+      datas_n[word_addr+i] = mem_req_delayed.data[i*WORD_WIDTH+:WORD_WIDTH];
+    end
 
     // Read logic
     for (int unsigned i = 0; i < WORDS_IN_LINE; ++i) begin

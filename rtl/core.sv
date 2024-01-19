@@ -84,10 +84,8 @@ module core
   logic arb_req_icache;
   logic [ADDRESS_WIDTH-1:0] arb_req_icache_address;
 
-
   logic grant_dcache;
   logic grant_icache;
-
 
   fetch_stage fetch (
       .clk(clk),
@@ -269,6 +267,7 @@ module core
 
   arbiter arb (
       .clk(clk),
+      .reset(reset),
 
       .mem_req_1  (arb_req_dcache),
       .mem_write_1(arb_req_dcache_write),

@@ -19,6 +19,14 @@ Processor Architecture course at UPC, with the following requirements:
 - Unconditional jump: JAL 
 - Memory: SB, SW, LB, LW
 
+## Quickstart
+
+```bash
+# Available programs are: buffer_sum, memcpy, matmul
+PROG=<program_name> make core
+make waves
+```
+
 ## Create tests hex memory file
 
 Requires [riscv-gnu-toolchain](https://github.com/riscv-collab/riscv-gnu-toolchain)
