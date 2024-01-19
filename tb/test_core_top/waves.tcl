@@ -132,7 +132,7 @@ addSignals $stb Yellow stb_entry
 
 set regColor Orange
 
-set registers {{10 a0} {5 t0} {6 t1} {7 t2} {28 t3} {29 t4} {30 t5} {31 t6}}
+set registers {{10 a0} {11 a1} {12 a2} {13 a3} {14 a4} {5 t0} {6 t1} {7 t2} {28 t3} {29 t4} {30 t5} {31 t6}}
 
 
 foreach reg $registers {

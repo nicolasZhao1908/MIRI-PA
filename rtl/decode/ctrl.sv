@@ -141,7 +141,14 @@ module ctrl
         case (funct3)
           // ADD, ADDI, SUB
           3'b000: begin
-            alu_ctrl = (opcode[5] & funct7[5]) ? SUB : (funct7[0] ? MUL : ADD);
+            if (opcode[5] & funct7[5]) begin
+              alu_ctrl = SUB;
+            end else if (opcode[5] & ~funct7[5]) begin
+              alu_ctrl = ADD;
+              if (funct7[0]) begin
+                alu_ctrl = MUL;
+              end
+            end
           end
           // OR, ORI
           3'b110: begin

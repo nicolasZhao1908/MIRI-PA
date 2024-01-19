@@ -51,6 +51,7 @@ module arbiter
         end
       end
       GRANT_ICACHE: begin
+        mem_addr  = mem_addr_2;
         if (~mem_req_2) begin
           mem_req = 0;
           state_n = IDLE;
