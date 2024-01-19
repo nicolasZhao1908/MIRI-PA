@@ -72,7 +72,7 @@ module hazard
     // Flush on control hazard
     assign pc_taken_w = (pc_src_in == FROM_A);
     assign flush_D_out = (pc_taken_w | icache_mem_req_in) & (~stall_C_out);
-    assign flush_A_out = load_stall_w & ~stall_C_out;
+    assign flush_A_out = (pc_taken_w | load_stall_w) & ~stall_C_out;
     assign flush_WB_out = dcache_mem_req_in;
   end
 

@@ -117,7 +117,7 @@ module ctrl
       end
 
       OPCODE_JUMP: begin
-        reg_write = 1'b1;
+        reg_write = 1'b0;
         imm_src = J_IMM;
         // alu_src = XXX
         mem_write = 1'b0;

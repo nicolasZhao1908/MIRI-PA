@@ -101,7 +101,12 @@ module cache
       cache_sets_n[write_addr_set].dirty = 1;
     end
 
-    miss = ~((addr_tag == cache_sets_q[addr_set].tag) & cache_sets_q[addr_set].valid) & is_mem;
+
+    if (cache_write) begin
+      miss = ~((write_addr_tag == cache_sets_q[write_addr_set].tag) & cache_sets_q[write_addr_set].valid) & is_mem;
+    end else begin
+      miss = ~((addr_tag == cache_sets_q[addr_set].tag) & cache_sets_q[addr_set].valid) & is_mem;
+    end
 
     evict = (cache_sets_q[write_addr_set].dirty & cache_sets_q[write_addr_set].valid) & (miss | cache_write);
     evict_data = cache_sets_q[write_addr_set].data;

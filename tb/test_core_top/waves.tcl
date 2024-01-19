@@ -4,6 +4,9 @@ set stall { brisc_core.stall_F
             brisc_core.stall_D 
             brisc_core.stall_A 
             brisc_core.stall_C 
+            brisc_core.flush_D 
+            brisc_core.flush_A
+            brisc_core.flush_WB
           }
 set fetch { brisc_core.pc_F
             brisc_core.instr_F
@@ -134,4 +137,8 @@ set registers {{10 a0} {5 t0} {6 t1} {7 t2} {28 t3} {29 t4} {30 t5} {31 t6}}
 
 foreach reg $registers {
   prettifySignal brisc_core.decode.rfile.regs_n\[[lindex $reg 0]\] $regColor [lindex $reg 1]
+}
+
+for {set i 4096} {$i < 4353} {incr i} {
+  prettifySignal brisc_core.mem.datas_q\[$i\] BLUE mem_data_$i
 }
