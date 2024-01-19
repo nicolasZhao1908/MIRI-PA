@@ -54,7 +54,7 @@ module arbiter
   ff #(
       .WIDTH(1)
   ) stabelizer_ff1 (
-      .clk(~clk),
+      .clk(clk),
       .enable(1'b1),
       .reset(1'b0),
       .inp(~(ff_out & mem_req_2) & mem_req_1),
@@ -65,7 +65,7 @@ module arbiter
   ff #(
       .WIDTH(1)
   ) stabelizer_ff2 (
-      .clk(~clk),
+      .clk(clk),
       .enable(1'b1),
       .reset(1'b0),
       .inp(gr2),

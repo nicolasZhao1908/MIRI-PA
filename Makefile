@@ -19,10 +19,9 @@ $(TARGETS):
 core: 
 	$(MAKE) -C $(PROGRAMS) memcpy
 	$(MAKE) -C $(CORETB)
-	$(MAKE) wave
 
 wave: tb/test_core_top/dump.fst tb/test_core_top/waves.tcl
-	$(GTKWAVE) $< --script=$(word 2,$^) #>>  /dev/null 2>&1
+	$(GTKWAVE) $< --script=$(word 2,$^) > /dev/null 2>&1 &
 
 clean:
 	rm -rf **/*/__pycache__

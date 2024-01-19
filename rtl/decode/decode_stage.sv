@@ -85,7 +85,6 @@ module decode_stage
     unique case (imm_src_w)
       I_IMM: begin
         imm_out = {{20{instr_w[31]}}, instr_w[31:20]};
-
       end
       S_IMM: begin
         imm_out = {{20{instr_w[31]}}, instr_w[31:25], instr_w[11:7]};

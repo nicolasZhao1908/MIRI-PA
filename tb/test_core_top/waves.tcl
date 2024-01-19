@@ -42,12 +42,16 @@ set dcache {
 
 set stb { 
                  brisc_core.cache.stb.entries_q[0].valid
+                 brisc_core.cache.stb.entries_q[0].addr
                  brisc_core.cache.stb.entries_q[0].data
                  brisc_core.cache.stb.entries_q[1].valid
+                 brisc_core.cache.stb.entries_q[1].addr
                  brisc_core.cache.stb.entries_q[1].data
                  brisc_core.cache.stb.entries_q[2].valid
+                 brisc_core.cache.stb.entries_q[2].addr
                  brisc_core.cache.stb.entries_q[2].data
                  brisc_core.cache.stb.entries_q[3].valid
+                 brisc_core.cache.stb.entries_q[3].addr
                  brisc_core.cache.stb.entries_q[3].data
             }
 
