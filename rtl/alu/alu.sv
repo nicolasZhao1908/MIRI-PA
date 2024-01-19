@@ -25,6 +25,9 @@ module alu
       OR: begin
         result = src1 | src2;
       end
+      MUL: begin
+        result = src1 * src2;
+      end
       default: begin
         // all possible bits for ctrl are covered
       end

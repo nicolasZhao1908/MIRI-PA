@@ -102,11 +102,12 @@ package brisc_pkg;
     FROM_WB = 2'b10
   } fwd_src_e;
 
-  typedef enum logic [1:0] {
-    ADD = 2'b00,
-    SUB = 2'b01,
-    AND = 2'b10,
-    OR  = 2'b11
+  typedef enum logic [2:0] {
+    ADD = 3'b000,
+    SUB = 3'b001,
+    AND = 3'b010,
+    OR  = 3'b011,
+    MUL = 3'b100
   } alu_ctrl_e;
 
 

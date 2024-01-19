@@ -87,12 +87,12 @@ module ctrl
       end
       OPCODE_R: begin
         reg_write = 1'b1;
+        mem_write = 1'b0;
         // imm_src = XXX
         alu_src2 = FROM_RS2;
-        mem_write = 1'b0;
+        alu_op = Rtype_OP;
         // result_src = XXX
         is_branch = 1'b0;
-        alu_op = Rtype_OP;
         is_jump = 1'b0;
       end
       OPCODE_BEQ: begin
@@ -141,7 +141,7 @@ module ctrl
         case (funct3)
           // ADD, ADDI, SUB
           3'b000: begin
-            alu_ctrl = (opcode[5] & funct7[5]) ? SUB : ADD;
+            alu_ctrl = (opcode[5] & funct7[5]) ? SUB : (funct7[0] ? MUL : ADD);
           end
           // OR, ORI
           3'b110: begin
