@@ -10,7 +10,7 @@ async def test_core(dut):
     await clk.tick()
     dut.reset.value = 0
     await clk.tick()
-    while i < 2000:
+    while i < 4000:
         await clk.tick()
         i += 1
     return

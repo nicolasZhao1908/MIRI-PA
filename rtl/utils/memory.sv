@@ -99,7 +99,7 @@ module memory
       .WIDTH(CACHE_LINE_WIDTH + ADDRESS_WIDTH + 1)
   ) long_way_back (
       .clk(clk),
-      .enable(1),
+      .enable(1'b1), //mem_req_delayed.req & ~mem_req_delayed.req_store
       .reset(fill_delayed.valid),
       .inp(fill_aux),
       .out(fill_delayed)

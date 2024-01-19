@@ -140,5 +140,5 @@ foreach reg $registers {
 }
 
 for {set i 4096} {$i < 4353} {incr i} {
-  prettifySignal brisc_core.mem.datas_q\[$i\] BLUE mem_data_$i
+  prettifySignal mem.datas_q\[$i\] Blue mem_data_$i
 }
