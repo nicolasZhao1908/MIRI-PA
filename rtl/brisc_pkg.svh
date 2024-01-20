@@ -20,7 +20,7 @@ package brisc_pkg;
   // 3 matrices of 128x128 words so 128x128x4x3
   // Data address 0x4000
   // (0x4000 + 128x128x128x4x3)/4 ~= 16384 ~= 2^14
-  // let's try 2^15
+  // so let's try 2^15
   // parameter int unsigned MEM_DEPTH = 1 << 15;
   parameter int unsigned MEM_DEPTH = 1 << 13;
   parameter int unsigned NUM_CACHE_LINES = 4;
@@ -112,13 +112,6 @@ package brisc_pkg;
     MUL = 3'b100
   } alu_ctrl_e;
 
-
-  typedef enum logic [1:0] {
-    OTHER = 2'b00,
-    IS_STORE = 2'b10,
-    IS_LOAD = 2'b01
-  } stb_ctrl_e;
-
   typedef enum logic {
     B = 1'b0,
     W = 1'b1
@@ -140,6 +133,51 @@ package brisc_pkg;
     logic store;
   } rob_req_t;
 
+
+  // Cache structs
+  // CPU request input (CPU -> Cache)
+  typedef struct packed {
+    logic valid;
+    logic rw;
+    logic [ADDRESS_WIDTH-1:0] addr;
+    logic [XLEN-1:0] data;
+    data_size_e size;
+  } cpu_req_t;
+
+  // Memory response (Mem -> Cache)
+  typedef struct packed {
+    logic ready;
+    logic [ADDRESS_WIDTH-1:0] addr;
+    logic [CACHE_LINE_WIDTH-1:0] data;
+  } mem_resp_t;
+
+  // Memory request (Cache -> Mem)
+  typedef struct packed {
+    logic valid;
+    logic rw;
+    logic [ADDRESS_WIDTH-1:0] addr;
+    logic [CACHE_LINE_WIDTH-1:0] data;
+  } mem_req_t;
+
+  // Cache result (Cache -> CPU)
+  typedef struct packed {
+    logic [XLEN-1:0] data;
+    logic ready;
+  } cpu_result_t;
+
+  localparam int unsigned SET_WIDTH = $clog2(NUM_CACHE_LINES);
+  localparam int unsigned BYTE_OFFSET_WIDTH = $clog2(WORD_WIDTH / BYTE_WIDTH);
+  localparam int unsigned OFFSET_WIDTH = $clog2(CACHE_LINE_WIDTH / BYTE_WIDTH);
+  localparam int unsigned TAG_WIDTH = ADDRESS_WIDTH - SET_WIDTH - OFFSET_WIDTH;
+
+  //  Cache set = Tag store + data store
+  typedef struct packed {
+    logic valid;
+    logic dirty;
+    logic [TAG_WIDTH-1:0] tag;
+    logic [CACHE_LINE_WIDTH-1:0] data;
+  } cache_set_t;
 endpackage
+
 
 `endif

@@ -13,9 +13,9 @@ module hazard
     input logic reg_write_C_in,
     input logic reg_write_WB_in,
     input result_src_e result_src_A_in,
-    input pc_src_e pc_src_in,
-    input logic icache_mem_req_in,
-    input logic dcache_mem_req_in,
+    input pc_src_e pc_src_A_in,
+    input logic icache_ready_in,
+    input logic dcache_ready_in,
     output fwd_src_e fwd_src1_out,
     output fwd_src_e fwd_src2_out,
     output stall_F_out,
@@ -33,47 +33,47 @@ module hazard
   always_comb begin
 
     // Defaults
-    assign fwd_src1_out = NONE;
-    assign fwd_src2_out = NONE;
-    assign stall_F_out = '0;
-    assign stall_D_out = '0;
-    assign flush_D_out = '0;
-    assign flush_A_out = '0;
-    assign load_stall_w = '0;
-    assign pc_taken_w = '0;
+    fwd_src1_out = NONE;
+    fwd_src2_out = NONE;
+    stall_F_out = '0;
+    stall_D_out = '0;
+    flush_D_out = '0;
+    flush_A_out = '0;
+    load_stall_w = '0;
+    pc_taken_w = '0;
 
 
     // Forwarding C -> EX or WB -> EX
     if (((rs1_A_in == rd_C_in) & reg_write_C_in) & (rs1_A_in != 0)) begin
-      assign fwd_src1_out = FROM_C;
+      fwd_src1_out = FROM_C;
     end else if (((rs1_A_in == rd_WB_in) & reg_write_WB_in) & (rs1_A_in != 0)) begin
-      assign fwd_src1_out = FROM_WB;
+      fwd_src1_out = FROM_WB;
     end else begin
-      assign fwd_src1_out = NONE;
+      fwd_src1_out = NONE;
     end
 
     if (((rs2_A_in == rd_C_in) & reg_write_C_in) & (rs2_A_in != 0)) begin
-      assign fwd_src2_out = FROM_C;
+      fwd_src2_out = FROM_C;
     end else if (((rs2_A_in == rd_WB_in) & reg_write_WB_in) & (rs2_A_in != 0)) begin
-      assign fwd_src2_out = FROM_WB;
+      fwd_src2_out = FROM_WB;
     end else begin
-      assign fwd_src2_out = NONE;
+      fwd_src2_out = NONE;
     end
 
     // Stall if a previous load instr produces
     // the value to be consumed of the next instr
-    assign load_stall_w = (result_src_A_in == FROM_CACHE) &
+    load_stall_w = (result_src_A_in == FROM_CACHE) &
                  ((rs1_D_in == rd_A_in) | (rs2_D_in == rd_A_in));
-    assign stall_F_out = load_stall_w | dcache_mem_req_in | icache_mem_req_in;
-    assign stall_D_out = load_stall_w | dcache_mem_req_in;
-    assign stall_C_out = dcache_mem_req_in;
-    assign stall_A_out = dcache_mem_req_in;
+    stall_F_out = load_stall_w | ~dcache_ready_in | ~icache_ready_in;
+    stall_D_out = load_stall_w | ~dcache_ready_in;
+    stall_A_out = ~dcache_ready_in;
+    stall_C_out = ~dcache_ready_in;
 
     // Flush on control hazard
-    assign pc_taken_w = (pc_src_in == FROM_A);
-    assign flush_D_out = (pc_taken_w | icache_mem_req_in) & (~stall_C_out);
-    assign flush_A_out = (pc_taken_w | load_stall_w) & ~stall_C_out;
-    assign flush_WB_out = dcache_mem_req_in;
+    pc_taken_w = (pc_src_A_in == FROM_A);
+    flush_D_out = (pc_taken_w | ~icache_ready_in) & (~stall_C_out);
+    flush_A_out = (pc_taken_w | load_stall_w) & ~stall_C_out;
+    flush_WB_out = ~dcache_ready_in;
   end
 
 

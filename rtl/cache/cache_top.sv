@@ -2,147 +2,156 @@
 
 module cache_top
   import brisc_pkg::*;
-#(
-    parameter integer unsigned NUM_LINES  = NUM_CACHE_LINES,
-    parameter integer unsigned ADDR_WIDTH = ADDRESS_WIDTH,
-    parameter integer unsigned LINE_WIDTH = CACHE_LINE_WIDTH
-) (
-    // Pipeline
+(
     input logic clk,
     input logic reset,
 
-    input logic [ADDR_WIDTH-1:0] addr,
-    input data_size_e data_size,
-    output logic [XLEN-1:0] read_data,
-    input logic is_load,
-    input logic is_store,
-
-    // Arbiter
-    input logic arbiter_grant,
-
-    // Memory
-    output logic mem_req,
-    output logic mem_req_write,
-    output logic [ADDR_WIDTH-1:0] mem_req_addr,
-    output logic [LINE_WIDTH-1:0] mem_req_data,
-    input logic mem_resp,
-    input logic [LINE_WIDTH-1:0] mem_resp_data,
-    input logic [ADDR_WIDTH-1:0] mem_resp_addr,
-
-    // STB
-    input logic [XLEN-1:0] stb_write_data,
-    input logic [ADDR_WIDTH-1:0] stb_write_addr,
-    input logic stb_write,
-    input data_size_e stb_write_size,
-    input logic stb_read_valid
+    input arbiter_grant,
+    input cpu_req_t cpu_req,
+    input mem_resp_t mem_resp,
+    output mem_req_t mem_req,
+    output cpu_result_t cpu_res
 );
-  localparam int unsigned OFFSET_WIDTH = $clog2(LINE_WIDTH / BYTE_WIDTH);
-  localparam int unsigned WORD_OFFSET_WIDTH = $clog2(LINE_WIDTH / WORD_WIDTH);
 
-  logic [WORD_OFFSET_WIDTH-1:0] word_offset;
-  logic [OFFSET_WIDTH-1:0] byte_offset;
-  logic [WORD_WIDTH-1:0] read_word;
-  logic [BYTE_WIDTH-1:0] read_byte;
+  localparam int unsigned TAGMSB = ADDRESS_WIDTH;
+  localparam int unsigned TAGLSB = SET_WIDTH + OFFSET_WIDTH;
 
-  logic [LINE_WIDTH-1:0] cache_line;
-  logic [XLEN-1:0] write_data;
-  logic [XLEN-1:0] write_word;
-  logic [ADDRESS_WIDTH-1:0] evict_addr;
-  logic cache_evict;
-  logic cache_miss;
-  logic can_fill, can_fill_w;
-  logic needs_fill;
-
-  cache #(
-      .LINE_WIDTH(LINE_WIDTH)
-  ) cache_unit (
+  cache cache_unit (
       .clk(clk),
       .reset(reset),
-      .data_size(data_size),
-      .addr(addr),
-      .grant(arbiter_grant),
-
-      // Cache only receives writes from STB
-      .cache_write(stb_write),
-      .write_data (stb_write_data),
-      .write_addr (stb_write_addr),
-
-      .read_data(cache_line),
-      .miss(cache_miss),
-      .is_mem(is_load | is_store),
-
-      // Fill: requested memory line goes to cache
-      .fill(can_fill),
-      .fill_data(mem_resp_data),
-      .fill_addr(mem_resp_addr),
-
-      // Eviction: replaced dirty line goes to mem
-      .evict(cache_evict),
-      .evict_data(mem_req_data),
-      .evict_addr(evict_addr)
+      .enable(cache_rw),
+      .req_set(req_set),
+      .req_data(cache_req_data),
+      .read_data(cache_read_data)
   );
 
+  cache_set_t cache_read_data;
+  logic cache_rw;
+  cache_set_t cache_req_data;
+  logic [SET_WIDTH-1:0] req_set, req_set_w;
+
   enum logic [1:0] {
-    IDLE,
-    WAIT_EVICT,
-    WAIT_FILL
+    COMPARE_TAG,
+    ALLOCATE,
+    WRITE_BACK
   }
-      state_q, state_n;
+      state_n, state_q;
+
 
   always_comb begin
-    // Store (evict dirty line) OR load (don't hit in either cache or STB)
-    can_fill = mem_resp & arbiter_grant & (mem_resp_addr == {addr[ADDRESS_WIDTH-1:OFFSET_WIDTH], {OFFSET_WIDTH{1'b0}}});
-    // For some reason verilator needs it (it warns about combinational loop)
-    can_fill_w = mem_resp & arbiter_grant & (mem_resp_addr == {addr[ADDRESS_WIDTH-1:OFFSET_WIDTH], {OFFSET_WIDTH{1'b0}}});
+    // defaults
+    state_n = state_q;
+    cpu_res = '{default: 0};
+    req_set = cpu_req.addr[SET_WIDTH+OFFSET_WIDTH-1:OFFSET_WIDTH];
+    req_set_w = cpu_req.addr[SET_WIDTH+OFFSET_WIDTH-1:OFFSET_WIDTH];
+    mem_req = '{
+        default: 0,
+        addr: {cpu_req.addr[TAGMSB-1:OFFSET_WIDTH], {OFFSET_WIDTH{1'b0}}},
+        data: cache_read_data.data
+    };
+    cache_rw = 0;
 
-    needs_fill = is_load & (cache_miss & ~stb_read_valid);
-
-    mem_req = cache_evict | needs_fill;
-    mem_req_write = cache_evict;
-    mem_req_addr = {addr[ADDRESS_WIDTH-1:OFFSET_WIDTH], {OFFSET_WIDTH{1'b0}}};
-
-    unique case (state_q)
-      IDLE: begin
-        state_n = IDLE;
-        if (mem_req) begin
-          if (mem_req_write) begin
-            mem_req_addr = evict_addr;
-            mem_req_write = 1;
-            state_n = WAIT_EVICT;
-          end else begin
-            state_n = WAIT_FILL;
-          end
-        end
+    /*read/write correct word/bytes */
+    case (cpu_req.addr[3:2])
+      2'b00: begin
+        cache_req_data.data[31:0] = cpu_req.data;
+        cpu_res.data = cache_read_data[31:0];
       end
-      WAIT_EVICT: begin
-        if (arbiter_grant) begin
-          if (cache_miss) begin
-            mem_req = 1;
-            mem_req_write = 0;
-            state_n = WAIT_FILL;
-          end else begin
-            mem_req = 0;
-            state_n = IDLE;
-          end
-        end
+      2'b01: begin
+        cache_req_data.data[63:32] = cpu_req.data;
+        cpu_res.data = cache_read_data[63:32];
       end
-      WAIT_FILL: begin
-        mem_req_write = 0;
-        state_n = can_fill_w ? IDLE : WAIT_FILL;
+      2'b10: begin
+        cache_req_data.data[95:64] = cpu_req.data;
+        cpu_res.data = cache_read_data[95:64];
+      end
+      2'b11: begin
+        cache_req_data.data[127:96] = cpu_req.data;
+        cpu_res.data = cache_read_data[127:96];
       end
     endcase
 
-    // MUX result data
-    word_offset = addr[OFFSET_WIDTH-1:OFFSET_WIDTH-WORD_OFFSET_WIDTH];
-    byte_offset = addr[OFFSET_WIDTH-1:0];
-    read_word   = cache_line[WORD_WIDTH*word_offset+:WORD_WIDTH];
-    read_byte   = cache_line[BYTE_WIDTH*byte_offset+:BYTE_WIDTH];
-    read_data   = (data_size == W) ? read_word : {{24{1'b0}}, read_byte};
+    // FSM
+    case (state_q)
+      /*compare_tag state*/
+      COMPARE_TAG: begin
+        if (cpu_req.valid) begin
+          /*cache hit (tag match and cache entry is valid)*/
+          if (cpu_req.addr[TAGMSB-1:TAGLSB] == cache_read_data.tag & cache_read_data.valid) begin
+            cpu_res.ready = '1;
+            /*write hit*/
+            if (cpu_req.rw) begin
+              cache_rw = '1;
+              cache_req_data.tag = cache_read_data.tag;
+              cache_req_data.valid = '1;
+              cache_req_data.dirty = '1;
+            end
+          end else begin
+            /*cache miss*/
+
+            /*generate memory request on miss*/
+            mem_req.valid = '1;
+
+            /*miss with dirty line*/
+            if (cache_read_data.dirty) begin
+              mem_req.addr = {cache_read_data.tag, req_set_w, {OFFSET_WIDTH{1'b0}}};
+              mem_req.rw = '1;
+              /*wait till write is completed*/
+              state_n = WRITE_BACK;
+            end else begin
+              /* miss with clean block */
+              /*wait till a new block is allocated*/
+              state_n = ALLOCATE;
+            end
+          end
+        end
+      end
+      /*wait for allocating a new cache line*/
+      ALLOCATE: begin
+        if (cpu_req.valid) begin
+          mem_req.valid = 1;
+          /* waiting for fill*/
+          if (mem_resp.ready & arbiter_grant &
+              mem_resp.addr[ADDRESS_WIDTH-1:OFFSET_WIDTH] == cpu_req.addr[ADDRESS_WIDTH-1:OFFSET_WIDTH]) begin
+            state_n = COMPARE_TAG;
+            cache_req_data.data = mem_resp.data;
+            cache_req_data.tag = cpu_req.addr[TAGMSB-1:TAGLSB];
+            cache_req_data.dirty = 0;
+            cache_req_data.valid = '1;
+            cache_rw = '1;
+          end
+          if (cpu_req.rw & arbiter_grant) begin
+            state_n = COMPARE_TAG;
+          end
+        end else begin
+          state_n = COMPARE_TAG;
+        end
+      end
+      /*wait for writing back dirty cache line*/
+      WRITE_BACK: begin
+        /*write back is completed*/
+        if (cpu_req.valid) begin
+          mem_req.valid = 1;
+          if (arbiter_grant) begin
+            /* once we evict the line we fill with the clean line again*/
+            mem_req.valid = '1;
+            mem_req.rw = '0;
+            mem_req.addr = {cpu_req.addr[TAGMSB-1:BYTE_OFFSET_WIDTH], {BYTE_OFFSET_WIDTH{1'b0}}};
+            state_n = ALLOCATE;
+          end
+        end else begin
+          state_n = COMPARE_TAG;
+        end
+      end
+      default: begin
+        /* NO reachable*/
+      end
+    endcase
   end
 
-  always_ff @(posedge clk) begin
+  always_ff @(posedge (clk)) begin
     if (reset) begin
-      state_q <= IDLE;
+      state_q <= COMPARE_TAG;
     end else begin
       state_q <= state_n;
     end

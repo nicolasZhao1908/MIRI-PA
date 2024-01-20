@@ -17,9 +17,9 @@ module cache_stage
     output logic [REG_BITS-1:0] rd_out,
 
     output logic [XLEN-1:0] read_data_out,
+    output logic dcache_ready_out,
 
     input logic arbiter_grant_in,
-
 
     // From memory
     input logic fill_in,
@@ -43,94 +43,83 @@ module cache_stage
   data_size_e data_size_w;
 
   logic is_store;
-  logic is_load;
-  logic [XLEN-1:0] cache_write_data;
-  logic [ADDRESS_WIDTH-1:0] cache_write_addr;
-  logic [XLEN-1:0] cache_read_data;
 
-  logic cache_write;
-  logic stb_read_valid;
+  // Avoid combinational circular loop
+  logic is_load, is_load_w, is_load_ww;
 
-  logic mem_req;
-  logic mem_req_write;
-
+  logic stb_flush;
+  logic [XLEN-1:0] stb_flush_data;
+  logic [ADDRESS_WIDTH-1:0] stb_flush_addr;
+  logic stb_read_ready;
   logic [XLEN-1:0] stb_read_data;
   logic [XLEN-1:0] stb_read_addr;
-
   logic [XLEN-1:0] stb_write_data;
   data_size_e stb_data_size;
-  stb_ctrl_e stb_ctrl;
+
+  cpu_req_t cpu_req;
+  cpu_result_t cpu_res;
+  mem_req_t mem_req;
+  mem_resp_t mem_resp;
 
 
   always_comb begin
-    read_data_out = (stb_read_valid) ? stb_read_data : cache_read_data;
+    // Avoid combinational circular loop
     is_load = (result_src_out == FROM_C);
-    stb_ctrl = OTHER;
+    is_load_w = (result_src_out == FROM_C);
+    is_load_ww = (result_src_out == FROM_C);
 
+    cpu_req.valid = (is_load_w | is_store) | stb_flush;
+    cpu_req.rw = stb_flush;
+    cpu_req.data = stb_flush_data;
+    cpu_req.addr = stb_flush ? stb_flush_addr : alu_res_out;
+    cpu_req.size = data_size_w;
 
-    if (is_load) begin
-      stb_ctrl = IS_LOAD;
-    end else if (is_store) begin
-      stb_ctrl = IS_STORE;
-    end
+    mem_resp.ready = fill_in;
+    mem_resp.addr = fill_addr_in;
+    mem_resp.data = fill_data_in;
+
+    mem_req_out = mem_req.valid;
+    mem_req_write_out = mem_req.rw;
+    mem_req_addr_out = mem_req.addr;
+    mem_req_data_out = mem_req.data;
+
+    read_data_out = (stb_read_ready) ? stb_read_data : cpu_res.data;
+    dcache_ready_out = stb_read_ready | cpu_res.ready | (~is_load_ww & ~is_store);
   end
 
   cache_top dcache (
-      .clk  (clk),
+      .clk(clk),
       .reset(reset),
-
-      .addr(alu_res_out),
-      .data_size(data_size_w),
-      .read_data(cache_read_data),
-      .is_load(is_load),
-      .is_store(is_store),
-
-      // Arbiter
+      .cpu_req(cpu_req),
+      .cpu_res(cpu_res),
       .arbiter_grant(arbiter_grant_in),
-      .mem_req(mem_req_out),
-      .mem_req_addr(mem_req_addr_out),
-      .mem_req_data(mem_req_data_out),
-      .mem_req_write(mem_req_write_out),
-
-      // Memory
-      .mem_resp(fill_in),
-      .mem_resp_data(fill_data_in),
-      .mem_resp_addr(fill_addr_in),
-
-      // STB
-      .stb_write_data(cache_write_data),
-      .stb_write_addr(cache_write_addr),
-      .stb_write(cache_write),
-      .stb_write_size(stb_data_size),
-      .stb_read_valid(stb_read_valid)
+      .mem_req(mem_req),
+      .mem_resp(mem_resp)
   );
 
-
   store_buffer stb (
-      .clk  (clk),
+      .clk(clk),
       .reset(reset),
-
-      // Don't flush when memory is requesting
       .enable(~mem_req_out),
 
       .data_size_in(data_size_w),
 
-      // Is load or store?
-      .stb_ctrl_in(stb_ctrl),
-      .addr_in(alu_res_out),
+      .is_load (is_load),
+      .is_store(is_store),
+      .addr_in (alu_res_out),
 
       // Add entries
       .write_data_in(stb_write_data),
 
       // Remove entries
-      .cache_write_data_out(cache_write_data),
-      .cache_write_addr_out(cache_write_addr),
-      .cache_write_out(cache_write),
+      .flush_data_out(stb_flush_data),
+      .flush_addr_out(stb_flush_addr),
+      .flush_out(stb_flush),
 
       // Fowarding and stalling
       .read_data_out (stb_read_data),
       .read_addr_out (stb_read_addr),
-      .read_valid_out(stb_read_valid),
+      .read_valid_out(stb_read_ready),
       .data_size_out (stb_data_size)
   );
 

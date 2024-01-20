@@ -8,11 +8,10 @@ module store_buffer
     input logic clk,
     input logic reset,
 
-    // Enable if not stalled by the pipeline or the arbiter request
     input logic enable,
 
-    // Is load, store or other?
-    input stb_ctrl_e stb_ctrl_in,
+    input logic is_store,
+    input logic is_load,
     input logic [ADDRESS_WIDTH-1:0] addr_in,
 
     // Add entries
@@ -20,9 +19,9 @@ module store_buffer
     input data_size_e data_size_in,
 
     // Evict entries to cache
-    output logic [XLEN-1:0] cache_write_data_out,
-    output logic [ADDRESS_WIDTH-1:0] cache_write_addr_out,
-    output logic cache_write_out,
+    output logic [XLEN-1:0] flush_data_out,
+    output logic [ADDRESS_WIDTH-1:0] flush_addr_out,
+    output logic flush_out,
 
     // Fowarding and stalling
     output logic [XLEN-1:0] read_data_out,
@@ -59,9 +58,9 @@ module store_buffer
     cnt_n = cnt_q;
     read_valid_out = 0;
 
-    for (int unsigned i = 0; i > cnt_q; ++i) begin
-      found_idx = read_ptr_q + i;
-      if (addr_in == entries_q[found_idx].addr & entries_q[found_idx].valid & stb_ctrl_in == IS_LOAD) begin
+    for (int unsigned i = 0; i < cnt_q; ++i) begin
+      found_idx = write_ptr_q - i;
+      if (addr_in == entries_q[found_idx].addr & entries_q[found_idx].valid & is_load) begin
         read_valid_out = 1;
         break;
       end
@@ -73,30 +72,24 @@ module store_buffer
     read_data_out = entries_q[found_idx].data;
     read_addr_out = entries_q[found_idx].addr;
 
-    cache_write_data_out = entries_q[read_ptr_q].data;
-    cache_write_addr_out = entries_q[read_ptr_q].addr;
+    flush_data_out = entries_q[read_ptr_q].data;
+    flush_addr_out = entries_q[read_ptr_q].addr;
     data_size_out = entries_q[read_ptr_q].data_size;
 
     // The only interaction between STB and cache is writing to the cache
     // Flush to $ when:
     //  a) is a LW and the data in the entry holds a byte
-    //  b) is a ST and is not empty
-    //  c) is other operation that does not use the cache stage
-    // cache_write_out = ((read_valid_out & data_size_in == W &
-    //                 entries_q[found_idx].data_size == B)
-    //               | ((stb_ctrl_in == IS_STORE & full) & ~empty))
-    //               | (stb_ctrl_in == OTHER & ~empty);
+    //  b) is a SW/SB and is not empty
+    //  c) is other operation that does not use the Cache stage
 
-    cache_write_out = (
-                  ((stb_ctrl_in == IS_STORE & full) & ~empty))
-                  | (stb_ctrl_in == OTHER & ~empty);
+    flush_out = ((is_store & full) & ~empty) | (~(is_store | is_load) & ~empty);
 
     // Flush to $
-    if (cache_write_out) begin
+    if (flush_out) begin
       entries_n[read_ptr_q].valid = 0;
       read_ptr_n = read_ptr_q + 1;
       cnt_n = cnt_q - 1;
-    end else if ((stb_ctrl_in == IS_STORE) & ~full) begin
+    end else if (is_store & ~full) begin
       // Store into STB
       entries_n[write_ptr_q].addr = addr_in;
       entries_n[write_ptr_q].valid = 1;

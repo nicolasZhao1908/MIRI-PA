@@ -24,22 +24,30 @@ set core {
           }
 set icache {
                  brisc_core.fetch.icache.cache_unit.cache_sets_q[0].valid
+                 brisc_core.fetch.icache.cache_unit.cache_sets_q[0].dirty
                  brisc_core.fetch.icache.cache_unit.cache_sets_q[0].data
                  brisc_core.fetch.icache.cache_unit.cache_sets_q[1].valid
+                 brisc_core.fetch.icache.cache_unit.cache_sets_q[1].dirty
                  brisc_core.fetch.icache.cache_unit.cache_sets_q[1].data
                  brisc_core.fetch.icache.cache_unit.cache_sets_q[2].valid
+                 brisc_core.fetch.icache.cache_unit.cache_sets_q[2].dirty
                  brisc_core.fetch.icache.cache_unit.cache_sets_q[2].data
                  brisc_core.fetch.icache.cache_unit.cache_sets_q[3].valid
+                 brisc_core.fetch.icache.cache_unit.cache_sets_q[3].dirty
                  brisc_core.fetch.icache.cache_unit.cache_sets_q[3].data
             }
 set dcache { 
                  brisc_core.cache.dcache.cache_unit.cache_sets_q[0].valid
+                 brisc_core.cache.dcache.cache_unit.cache_sets_q[0].dirty
                  brisc_core.cache.dcache.cache_unit.cache_sets_q[0].data
                  brisc_core.cache.dcache.cache_unit.cache_sets_q[1].valid
+                 brisc_core.cache.dcache.cache_unit.cache_sets_q[1].dirty
                  brisc_core.cache.dcache.cache_unit.cache_sets_q[1].data
                  brisc_core.cache.dcache.cache_unit.cache_sets_q[2].valid
+                 brisc_core.cache.dcache.cache_unit.cache_sets_q[2].dirty
                  brisc_core.cache.dcache.cache_unit.cache_sets_q[2].data
                  brisc_core.cache.dcache.cache_unit.cache_sets_q[3].valid
+                 brisc_core.cache.dcache.cache_unit.cache_sets_q[3].dirty
                  brisc_core.cache.dcache.cache_unit.cache_sets_q[3].data
             }
 
@@ -62,9 +70,7 @@ set alu {
                  brisc_core.alu.src1
                  brisc_core.alu.src2
                  brisc_core.alu_res_A
-                 brisc_core.alu.pc_target_out
-                 brisc_core.alu.pc_src_out
-            }
+        }
 
 proc addSignals {signals color prefix} {
     set i 0
@@ -119,13 +125,8 @@ gtkwave::/Edit/Color_Format/Red
 gtkwave::addSignalsFromList $xcpt
 gtkwave::/Edit/Color_Format/Red
 
-# gtkwave::addSignalsFromList brisc_core.fetch.icache.state_q
-# gtkwave::/Edit/Color_Format/Orange
-# gtkwave::highlightSignalsFromList brisc_core.fetch.icache.state_q
-# gtkwave::/Edit/Alias_Highlighted_Trace icache_state
-# gtkwave::/Edit/UnHighlight_All icache_state
-# addSignals $icache Orange icache_line
-
+prettifySignal brisc_core.fetch.icache.state_q Violet icache_state
+addSignals $icache Orange icache_line
 prettifySignal brisc_core.cache.dcache.state_q Violet dcache_state
 addSignals $dcache Violet dcache_line
 addSignals $stb Yellow stb_entry

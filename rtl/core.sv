@@ -84,8 +84,9 @@ module core
   logic arb_req_icache;
   logic [ADDRESS_WIDTH-1:0] arb_req_icache_address;
 
-  logic grant_dcache;
-  logic grant_icache;
+  logic grant_dcache, grant_icache;
+
+  logic dcache_ready, icache_ready;
 
   fetch_stage fetch (
       .clk(clk),
@@ -100,6 +101,7 @@ module core
 
       // Cache
       .arbiter_grant_in(grant_icache),
+      .icache_ready_out(icache_ready),
       .mem_req_out(arb_req_icache),
       .mem_req_addr_out(arb_req_icache_address),
 
@@ -202,6 +204,7 @@ module core
       .fill_data_in(mem_fill_data),
       .fill_addr_in(mem_fill_addr),
       .arbiter_grant_in(grant_dcache),
+      .dcache_ready_out(dcache_ready),
       .mem_req_out(arb_req_dcache),
       .mem_req_data_out(arb_req_dcache_evict_data),
       .mem_req_addr_out(arb_req_dcache_address),
@@ -250,9 +253,9 @@ module core
       .reg_write_C_in(reg_write_C),
       .reg_write_WB_in(reg_write_WB),
       .result_src_A_in(result_src_A),
-      .icache_mem_req_in(arb_req_icache),
-      .dcache_mem_req_in(arb_req_dcache),
-      .pc_src_in(pc_src_A_F),
+      .icache_ready_in(icache_ready),
+      .dcache_ready_in(dcache_ready),
+      .pc_src_A_in(pc_src_A_F),
       .fwd_src1_out(fwd_src1_A),
       .fwd_src2_out(fwd_src2_A),
       .stall_F_out(stall_F),
@@ -266,7 +269,7 @@ module core
   );
 
   arbiter arb (
-      .clk(clk),
+      .clk  (clk),
       .reset(reset),
 
       .mem_req_1  (arb_req_dcache),

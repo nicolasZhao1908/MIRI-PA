@@ -62,8 +62,7 @@ module memory
     word_addr_delayed = mem_req_delayed.addr[ADDRESS_WIDTH-1:BYTE_OFFSET_WIDTH];
 
     for (int unsigned i = 0; i < WORDS_IN_LINE; ++i) begin
-      // TODO
-      datas_n[word_addr_delayed+i] |= mem_req_delayed.data[i*WORD_WIDTH+:WORD_WIDTH];
+      datas_n[word_addr_delayed+i] = mem_req_delayed.data[i*WORD_WIDTH+:WORD_WIDTH];
     end
 
     // Read logic
@@ -101,31 +100,6 @@ module memory
     end
     fill_delayed <= fill_aux[MEM_RESP_DELAY-1];
   end
-
-
-  // nff #(
-  //     .N(MEM_REQ_DELAY),
-  //     .WIDTH(CACHE_LINE_WIDTH + ADDRESS_WIDTH + 2)
-  // ) long_way_in (
-  //     .clk(clk),
-  //     .enable(1'b1),
-  //     // Pipelined mem operations
-  //     .reset(1'b0),
-  //     .inp(mem_req_aux),
-  //     .out(mem_req_delayed)
-  // );
-  // nff #(
-  //     .N(MEM_RESP_DELAY),
-  //     .WIDTH(CACHE_LINE_WIDTH + ADDRESS_WIDTH + 1)
-  // ) long_way_back (
-  //     .clk(clk),
-  //     .enable(1'b1),  //mem_req_delayed.req & ~mem_req_delayed.req_store
-  //     .reset(1'b0),
-  //     .inp(fill_aux),
-  //     .out(fill_delayed)
-  // );
-
-
 
 endmodule
 
