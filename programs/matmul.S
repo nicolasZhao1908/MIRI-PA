@@ -1,65 +1,64 @@
-// Matmul
+// Matrix multiplication
+//
+// int a[128][128], b[128][128], c[128][128]; 
+// for (i=0; i<128; i++) {
+//      for (j=0; j<128; i++) {
+//          c[i][j] = 0;
+//          for (int k = 0; i < 128; k++) {
+//              c[i][j] += a[i][k] * b[k][j];
+//          }
+//      }
+// } 
+// 
 
 .data
-    matrixA: .fill 16, 4, 1
-    matrixB: .fill 16, 4, 2
-    matrixC: .fill 16, 4, 0
+    C: .fill 16, 4, 0
+    A: .fill 16, 4, 2
+    B: .fill 16, 4, 3
     size: .word 4
 
 .text
 .global _start
 
 _start:
-	lw a0, size
-	la a1, matrixA
-	la a2, matrixB
-	la a3, matrixC
-	
-	addi t0, a1, 0
-	addi t1, a2, 0
-	
+    la t0, A
+    la t1, B
+    la t2, C
+    lw t3, size
+    addi a5, zero, 0
 
-
-	li t6, 0
-	li t5, 0
-col:
-			
-    li t2, 0
-	li t4, 0
-inner:
-	beq t4, a0, store
-
-	lw t3, 0(t0)
-	lw a4, 0(t1)
-
-	add t3, t3, a4 //NORMALLY A MUL!
-	add t2, t2, t3
-	
-	addi t1, t1, 16 // size * 4
-	addi t0, t0, 4
-	addi t4, t4, 1
-
-	j inner
-	
-store:
-	sw t2, 0(a3)
-	addi a3, a3, 4
-	# RESET
-	addi t0, t0, -16 // -size * 4
-	addi t1, t1, -60 // -size * size * 4 + 4
-
-	addi t5, t5, 1
-	beq t5, a0, inc_row
-
-	j col
-inc_row:
-	li t5, 0
-	
-	addi t0, t0, 16 // size * 4
-	addi t1, a2, 0
-	addi t6, t6, 1
-	
-	beq t6, a0, end
-	j col
+init_j: 
+    addi a7, zero, 0
+init_dot:
+    addi a6, zero, 0
+    addi t4, zero, 0
+dot: 
+    lw t5, 0(t0)
+    lw t6, 0(t1)
+    mul a4, t5, t6
+    add t4, t4, a4
+    addi a6, a6, 1
+    beq t3, a6, loop_j
+    addi t0, t0, 4
+    addi t1, t1, 16
+    j dot
+loop_j:
+    addi t0, t0, -12
+    addi t1, t1, -48
+    sw t4, 0(t2)
+    addi t2, t2, 4
+    addi a7, a7, 1 
+    beq a7, t3, loop_i
+    addi t1, t1, 4
+    j init_dot
+loop_i:
+    addi a5, a5, 1
+    beq t3, a5, end
+    addi t0, t0, 16
+    addi t1, t1, -12
+    j init_j
 end:
-	j end
+    j end
+
+    
+    

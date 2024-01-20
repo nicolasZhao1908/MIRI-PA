@@ -49,6 +49,7 @@ package brisc_pkg;
 
   // ADDI x0, x0, 0
   parameter logic [ILEN-1:0] NOP = 32'h00000013;
+  parameter logic [6:0] FUNCT7_MUL = 7'b0000001;
 
 
   // In RISC-V the modes are:

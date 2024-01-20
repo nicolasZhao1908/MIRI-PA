@@ -52,6 +52,8 @@ module arbiter
       end
       GRANT_ICACHE: begin
         mem_addr  = mem_addr_2;
+        mem_write  = mem_write_2;
+        mem_data  = mem_data_2;
         if (~mem_req_2) begin
           mem_req = 0;
           state_n = IDLE;
@@ -59,6 +61,9 @@ module arbiter
         grant_2 = 1;
       end
       GRANT_DCACHE: begin
+        mem_addr  = mem_addr_1;
+        mem_write  = mem_write_1;
+        mem_data  = mem_data_1;
         if (~mem_req_1) begin
           mem_req = 0;
           state_n = IDLE;

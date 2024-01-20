@@ -51,6 +51,7 @@ module cache_top
   logic cache_evict;
   logic cache_miss;
   logic can_fill, can_fill_w;
+  logic needs_fill;
 
   cache #(
       .LINE_WIDTH(LINE_WIDTH)
@@ -91,31 +92,43 @@ module cache_top
   always_comb begin
     // Store (evict dirty line) OR load (don't hit in either cache or STB)
     can_fill = mem_resp & arbiter_grant & (mem_resp_addr == {addr[ADDRESS_WIDTH-1:OFFSET_WIDTH], {OFFSET_WIDTH{1'b0}}});
-    // For some reason verilator needs it (it warns combinational loop)
+    // For some reason verilator needs it (it warns about combinational loop)
     can_fill_w = mem_resp & arbiter_grant & (mem_resp_addr == {addr[ADDRESS_WIDTH-1:OFFSET_WIDTH], {OFFSET_WIDTH{1'b0}}});
-    mem_req = (cache_evict | ((cache_miss & ~stb_read_valid) & is_load));
-    mem_req_addr = cache_evict ? evict_addr : {addr[ADDRESS_WIDTH-1:OFFSET_WIDTH], {OFFSET_WIDTH{1'b0}}};
+
+    needs_fill = is_load & (cache_miss & ~stb_read_valid);
+
+    mem_req = cache_evict | needs_fill;
     mem_req_write = cache_evict;
+    mem_req_addr = {addr[ADDRESS_WIDTH-1:OFFSET_WIDTH], {OFFSET_WIDTH{1'b0}}};
 
     unique case (state_q)
-      WAIT_EVICT: begin
-        if (arbiter_grant) begin
-          mem_req = 0;
-          state_n = IDLE;
-        end
-      end
-      WAIT_FILL: begin
-        state_n = can_fill_w ? IDLE : WAIT_FILL;
-      end
       IDLE: begin
         state_n = IDLE;
         if (mem_req) begin
           if (mem_req_write) begin
+            mem_req_addr = evict_addr;
+            mem_req_write = 1;
             state_n = WAIT_EVICT;
           end else begin
             state_n = WAIT_FILL;
           end
         end
+      end
+      WAIT_EVICT: begin
+        if (arbiter_grant) begin
+          if (cache_miss) begin
+            mem_req = 1;
+            mem_req_write = 0;
+            state_n = WAIT_FILL;
+          end else begin
+            mem_req = 0;
+            state_n = IDLE;
+          end
+        end
+      end
+      WAIT_FILL: begin
+        mem_req_write = 0;
+        state_n = can_fill_w ? IDLE : WAIT_FILL;
       end
     endcase
 

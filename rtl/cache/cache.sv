@@ -77,48 +77,52 @@ module cache
     // default
     cache_sets_n = cache_sets_q;
 
+    if (cache_write) begin
+      miss = ~((write_addr_tag == cache_sets_q[write_addr_set].tag) & cache_sets_q[write_addr_set].valid);
+      evict = cache_sets_q[write_addr_set].dirty & cache_sets_q[write_addr_set].valid & miss;
+      evict_data = cache_sets_q[write_addr_set].data;
+      evict_addr = {cache_sets_q[write_addr_set].tag, write_addr_set, {OFFSET_WIDTH{1'b0}}};
+    end else begin
+      miss = ~((addr_tag == cache_sets_q[addr_set].tag) & cache_sets_q[addr_set].valid) & is_mem;
+      evict = cache_sets_q[addr_set].dirty & cache_sets_q[addr_set].valid & miss;
+      evict_data = cache_sets_q[addr_set].data;
+      evict_addr = {cache_sets_q[addr_set].tag, addr_set, {OFFSET_WIDTH{1'b0}}};
+    end
 
-    write_byte = addr[byte_offset*BYTE_WIDTH+:BYTE_WIDTH];
+
+    write_byte = write_addr[byte_offset*BYTE_WIDTH+:BYTE_WIDTH];
     // prioritize fill over cache write (tho probably does not matter)
     if (fill) begin
       cache_sets_n[fill_addr_set].data  = fill_data;
       cache_sets_n[fill_addr_set].tag   = fill_addr_tag;
       cache_sets_n[fill_addr_set].dirty = 0;
       cache_sets_n[fill_addr_set].valid = 1;
-      // writes from STB
     end else if (cache_write) begin
+      // writes from STB
       word_offset = write_addr[WORD_OFFSET_WIDTH+BYTE_OFFSET_WIDTH-1:BYTE_OFFSET_WIDTH];
       byte_offset = write_addr[OFFSET_WIDTH-1:0];
-      write_byte = write_data[byte_offset*BYTE_WIDTH+:BYTE_WIDTH];
-      write_cache_line = cache_sets_q[write_addr_set].data;
-      if (data_size == W) begin
-        write_cache_line[word_offset*WORD_WIDTH+:WORD_WIDTH] = write_data;
-        // we only have W and B sizes
+      write_byte  = write_data[byte_offset*BYTE_WIDTH+:BYTE_WIDTH];
+      if (miss) begin
+        write_cache_line = {CACHE_LINE_WIDTH{'0}};
       end else begin
-        write_cache_line[byte_offset*BYTE_WIDTH+:BYTE_WIDTH] = write_byte;
+        write_cache_line = cache_sets_q[write_addr_set].data;
       end
+      unique case (data_size)
+        W: begin
+          write_cache_line[word_offset*WORD_WIDTH+:WORD_WIDTH] = write_data;
+        end
+        B: begin
+          write_cache_line[byte_offset*BYTE_WIDTH+:BYTE_WIDTH] = write_byte;
+        end
+      endcase
       cache_sets_n[write_addr_set].data  = write_cache_line;
       cache_sets_n[write_addr_set].tag   = write_addr_tag;
       cache_sets_n[write_addr_set].dirty = 1;
       cache_sets_n[write_addr_set].valid = 1;
     end
 
-
-    if (cache_write) begin
-      miss = ~((write_addr_tag == cache_sets_q[write_addr_set].tag) & cache_sets_q[write_addr_set].valid) & is_mem;
-    end else begin
-      miss = ~((addr_tag == cache_sets_q[addr_set].tag) & cache_sets_q[addr_set].valid) & is_mem;
-    end
-
-    evict = cache_sets_q[write_addr_set].dirty & cache_sets_q[write_addr_set].valid & miss;
-    evict_data = cache_sets_q[write_addr_set].data;
-    evict_addr = {cache_sets_q[write_addr_set].tag, write_addr_set, {OFFSET_WIDTH{1'b0}}};
-
-
     read_data = cache_sets_q[addr_set].data;
     write_cache_line = cache_sets_q[write_addr_set].data;
-
-
   end
 
   always_ff @(posedge clk) begin
