@@ -16,8 +16,8 @@ module reorder_buffer
     // Stall other pipelines when handling/answering one
     output logic waits[NUM_COMMITERS],
 
-    // Can STB commit?
-    output logic stb_commit_out,
+    // Can STB flush?
+    output logic stb_flush_out,
 
     output logic commit_out,
     output logic [XLEN-1:0] commit_result_out,
@@ -32,10 +32,10 @@ module reorder_buffer
     input logic fwd_alu_ticket_in,
 
     output logic fwd_alu_src1_out,
-    output logic fwd_alu_src1_valid_out,
+    output logic fwd_alu_src1_ready_out,
 
     output logic fwd_alu_src2_out,
-    output logic fwd_alu_src2_valid_out
+    output logic fwd_alu_src2_ready_out
 );
 
   struct packed {
@@ -86,17 +86,17 @@ module reorder_buffer
       cnt_n = cnt_q - 1;
     end
 
-    fwd_alu_src1_valid_out = 0;
-    fwd_alu_src2_valid_out = 0;
+    fwd_alu_src1_ready_out = 0;
+    fwd_alu_src2_ready_out = 0;
 
     for (found_idx = fwd_alu_ticket_in; found_idx != read_ptr_q; --found_idx) begin
     end
 
-    fwd_alu_src1_valid_out = (entries_q[found_idx].dest == fwd_alu_rs1_in) & entries_q[found_idx].valid;
+    fwd_alu_src1_ready_out = (entries_q[found_idx].dest == fwd_alu_rs1_in) & entries_q[found_idx].valid;
     fwd_alu_src1_out = entries_q[found_idx].result;
-    fwd_alu_src2_valid_out = (entries_q[found_idx].dest == fwd_alu_rs2_in) & entries_q[found_idx].valid;
+    fwd_alu_src2_ready_out = (entries_q[found_idx].dest == fwd_alu_rs2_in) & entries_q[found_idx].valid;
     fwd_alu_src2_out = entries_q[found_idx].result;
-    stb_commit_out = 0;
+    stb_flush_out = 0;
 
     expected_req = '{default: 0, ticket: read_ptr_q, xcpt: NO_XCPT};
 
@@ -127,7 +127,7 @@ module reorder_buffer
       end
       STORE: begin
         state_n = IDLE;
-        stb_commit_out = 1;
+        stb_flush_out = 1;
       end
     endcase
   end

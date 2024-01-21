@@ -14,11 +14,15 @@ IARG=-I$(RTL_DIR) \
 
 export PYTHONPATH:=$(TB_DIR)/models:$(PYTHONPATH)
 
-VERILOG_SOURCES= $(RTL_DIR)/brisc_pkg.svh \
-				$(RTL_DIR)/core_top.sv \
+VERILOG_SOURCES=$(RTL_DIR)/core_top.sv \
 				$(RTL_DIR)/core.sv \
-				$(RTL_DIR)/hazard.sv \
-				$(RTL_DIR)/arbiter.sv \
+				$(RTL_DIR)/utils/hazard.sv \
+				$(RTL_DIR)/utils/forward.sv \
+				$(RTL_DIR)/utils/arbiter.sv \
+ 				$(RTL_DIR)/utils/brisc_pkg.svh \
+				$(RTL_DIR)/utils/memory.sv \
+				$(RTL_DIR)/utils/ff.sv \
+				$(RTL_DIR)/utils/nff.sv \
 				$(RTL_DIR)/fetch/fetch_stage.sv \
 				$(RTL_DIR)/decode/decode_stage.sv \
 				$(RTL_DIR)/decode/ctrl.sv \
@@ -29,10 +33,7 @@ VERILOG_SOURCES= $(RTL_DIR)/brisc_pkg.svh \
  				$(RTL_DIR)/cache/cache_top.sv \
  				$(RTL_DIR)/cache/cache.sv \
  				$(RTL_DIR)/cache/store_buffer.sv \
- 				$(RTL_DIR)/wb/wb_stage.sv \
-				$(RTL_DIR)/utils/memory.sv \
-				$(RTL_DIR)/utils/ff.sv \
-				$(RTL_DIR)/utils/nff.sv
+ 				$(RTL_DIR)/wb/wb_stage.sv 
 
 EXTRA_ARGS+=--trace-fst --trace-structs $(IARG) --trace-max-array 16384 
 

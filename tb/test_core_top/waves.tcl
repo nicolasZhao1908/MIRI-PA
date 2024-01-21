@@ -12,15 +12,15 @@ set fetch { brisc_core.pc_F
             brisc_core.instr_F
           }
 set core {
-            brisc_core.grant_icache
-            brisc_core.grant_dcache
-            mem.req
-            mem.req_addr
-            mem.req_store
-            mem.req_evict_data
-            mem.fill
-            mem.fill_addr
-            mem.fill_data
+            brisc_core.igrant
+            brisc_core.dgrant
+            mem_req.valid
+            mem_req.rw
+            mem_req.addr
+            mem_req.data
+            mem_resp.valid
+            mem_resp.addr
+            mem_resp.data
           }
 set icache {
                  brisc_core.fetch.icache.cache_unit.cache_sets_q[0].valid

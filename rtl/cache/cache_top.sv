@@ -27,6 +27,8 @@ module cache_top
 
   cache_set_t cache_read_data;
   logic cache_rw;
+  logic [WORD_OFFSET_WIDTH-1:0] word_offset;
+  logic [OFFSET_WIDTH-1:0] byte_offset;
   cache_set_t cache_req_data;
   logic [SET_WIDTH-1:0] req_set, req_set_w;
 
@@ -51,23 +53,20 @@ module cache_top
     };
     cache_rw = 0;
 
+    word_offset = cpu_req.addr[OFFSET_WIDTH-1:BYTE_OFFSET_WIDTH];
+    byte_offset = cpu_req.addr[OFFSET_WIDTH-1:0];
+
     /*read/write correct word/bytes */
-    case (cpu_req.addr[3:2])
-      2'b00: begin
-        cache_req_data.data[31:0] = cpu_req.data;
-        cpu_res.data = cache_read_data[31:0];
+    unique case (cpu_req.size)
+      W: begin
+        cache_req_data.data[word_offset*WORD_WIDTH+:WORD_WIDTH] = cpu_req.data;
+        cpu_res.data = cache_read_data[word_offset*WORD_WIDTH+:WORD_WIDTH];
       end
-      2'b01: begin
-        cache_req_data.data[63:32] = cpu_req.data;
-        cpu_res.data = cache_read_data[63:32];
-      end
-      2'b10: begin
-        cache_req_data.data[95:64] = cpu_req.data;
-        cpu_res.data = cache_read_data[95:64];
-      end
-      2'b11: begin
-        cache_req_data.data[127:96] = cpu_req.data;
-        cpu_res.data = cache_read_data[127:96];
+      B: begin
+        cache_req_data.data[byte_offset*BYTE_WIDTH+:BYTE_WIDTH] = cpu_req.data[BYTE_WIDTH-1:0];
+        cpu_res.data = {
+          {WORD_WIDTH - BYTE_WIDTH{'0}}, cache_read_data[byte_offset*BYTE_WIDTH+:BYTE_WIDTH]
+        };
       end
     endcase
 
@@ -119,9 +118,6 @@ module cache_top
             cache_req_data.dirty = 0;
             cache_req_data.valid = '1;
             cache_rw = '1;
-          end
-          if (cpu_req.rw & arbiter_grant) begin
-            state_n = COMPARE_TAG;
           end
         end else begin
           state_n = COMPARE_TAG;

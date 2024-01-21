@@ -5,7 +5,7 @@
 // for (i=0; i<128; i++) { b[i] = a[i]; }
 
 .data
-    b: .fill 128,4,0
+    b: .fill 128,4,2
     a: .fill 128,4,1
     length: .word 128
 

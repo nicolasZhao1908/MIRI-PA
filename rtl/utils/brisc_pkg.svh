@@ -167,6 +167,7 @@ package brisc_pkg;
 
   localparam int unsigned SET_WIDTH = $clog2(NUM_CACHE_LINES);
   localparam int unsigned BYTE_OFFSET_WIDTH = $clog2(WORD_WIDTH / BYTE_WIDTH);
+  localparam int unsigned WORD_OFFSET_WIDTH = $clog2(CACHE_LINE_WIDTH / WORD_WIDTH);
   localparam int unsigned OFFSET_WIDTH = $clog2(CACHE_LINE_WIDTH / BYTE_WIDTH);
   localparam int unsigned TAG_WIDTH = ADDRESS_WIDTH - SET_WIDTH - OFFSET_WIDTH;
 

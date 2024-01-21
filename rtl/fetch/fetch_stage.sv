@@ -13,21 +13,13 @@ module fetch_stage
     output logic [XLEN-1:0] pc_out,
     output logic [XLEN-1:0] pc_plus4_out,
 
-    // Cache
     output logic icache_ready_out,
     input logic arbiter_grant_in,
-    output logic mem_req_out,
-    output logic [ADDRESS_WIDTH-1:0] mem_req_addr_out,
-
-    // Memory
-    input logic mem_resp_in,
-    input logic [CACHE_LINE_WIDTH-1:0] mem_resp_data_in,
-    input logic [ADDRESS_WIDTH-1:0] mem_resp_addr_in
+    output mem_req_t mem_req_out,
+    input mem_resp_t mem_resp_in
 );
 
   logic [XLEN-1:0] pc_next;
-  mem_req_t mem_req;
-  mem_resp_t mem_resp;
   cpu_result_t cpu_res;
   cpu_req_t cpu_req;
 
@@ -36,13 +28,6 @@ module fetch_stage
     cpu_req.rw = 0;
     cpu_req.addr = pc_out;
     cpu_req.size = W;
-
-    mem_resp.ready = mem_resp_in;
-    mem_resp.addr = mem_resp_addr_in;
-    mem_resp.data = mem_resp_data_in;
-
-    mem_req_out = mem_req.valid;
-    mem_req_addr_out = mem_req.addr;
 
     instr_out = cpu_res.data;
     icache_ready_out = cpu_res.ready;
@@ -59,8 +44,8 @@ module fetch_stage
       .arbiter_grant(arbiter_grant_in),
       .cpu_req(cpu_req),
       .cpu_res(cpu_res),
-      .mem_req(mem_req),
-      .mem_resp(mem_resp)
+      .mem_req(mem_req_out),
+      .mem_resp(mem_resp_in)
   );
 
   always_ff @(posedge clk) begin

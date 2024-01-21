@@ -22,15 +22,8 @@ module cache_stage
     input logic arbiter_grant_in,
 
     // From memory
-    input logic fill_in,
-    input logic [CACHE_LINE_WIDTH-1:0] fill_data_in,
-    input logic [ADDRESS_WIDTH-1:0] fill_addr_in,
-
-    // Request to arbiter
-    output logic mem_req_out,
-    output logic mem_req_write_out,
-    output logic [CACHE_LINE_WIDTH-1:0] mem_req_data_out,
-    output logic [ADDRESS_WIDTH-1:0] mem_req_addr_out,
+    input mem_resp_t mem_resp_in,
+    output mem_req_t mem_req_out,
 
     // Ctrl signals
     input logic reg_write_in,
@@ -58,8 +51,6 @@ module cache_stage
 
   cpu_req_t cpu_req;
   cpu_result_t cpu_res;
-  mem_req_t mem_req;
-  mem_resp_t mem_resp;
 
 
   always_comb begin
@@ -74,15 +65,6 @@ module cache_stage
     cpu_req.addr = stb_flush ? stb_flush_addr : alu_res_out;
     cpu_req.size = data_size_w;
 
-    mem_resp.ready = fill_in;
-    mem_resp.addr = fill_addr_in;
-    mem_resp.data = fill_data_in;
-
-    mem_req_out = mem_req.valid;
-    mem_req_write_out = mem_req.rw;
-    mem_req_addr_out = mem_req.addr;
-    mem_req_data_out = mem_req.data;
-
     read_data_out = (stb_read_ready) ? stb_read_data : cpu_res.data;
     dcache_ready_out = stb_read_ready | cpu_res.ready | (~is_load_ww & ~is_store);
   end
@@ -93,14 +75,14 @@ module cache_stage
       .cpu_req(cpu_req),
       .cpu_res(cpu_res),
       .arbiter_grant(arbiter_grant_in),
-      .mem_req(mem_req),
-      .mem_resp(mem_resp)
+      .mem_req(mem_req_out),
+      .mem_resp(mem_resp_in)
   );
 
   store_buffer stb (
       .clk(clk),
       .reset(reset),
-      .enable(~mem_req_out),
+      .enable(~mem_req_out.valid),
 
       .data_size_in(data_size_w),
 

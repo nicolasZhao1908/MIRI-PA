@@ -40,11 +40,11 @@ dot:
     addi a6, a6, 1
     beq t3, a6, loop_j
     addi t0, t0, 4
-    addi t1, t1, 16
+    addi t1, t1, 16 // 4*4
     j dot
 loop_j:
-    addi t0, t0, -12
-    addi t1, t1, -48
+    addi t0, t0, -12 // 4*3
+    addi t1, t1, -48 // 4*4*3
     sw t4, 0(t2)
     addi t2, t2, 4
     addi a7, a7, 1 
@@ -54,8 +54,8 @@ loop_j:
 loop_i:
     addi a5, a5, 1
     beq t3, a5, end
-    addi t0, t0, 16
-    addi t1, t1, -12
+    addi t0, t0, 16 // 4*4
+    addi t1, t1, -12 // 4*3
     j init_j
 end:
     j end

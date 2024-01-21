@@ -19,3 +19,7 @@ jobs:
                 .vh
                 .svh
             github_token: ${{ secrets.GITHUB_TOKEN }}
+        - name: Format all sv files
+          uses: chipsalliance/verible-formatter-action@main
+          with:
+            github_token: ${{ secrets.GITHUB_TOKEN }}

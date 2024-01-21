@@ -1,5 +1,7 @@
 **/*/mem.hex
 **/*/*.elf
+**/*/*fst.hier
+**/*.fst
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -43,7 +45,6 @@ results.xml
 pip-log.txt
 pip-delete-this-directory.txt
 
-**/*.fst
 
 # Unit test / coverage reports
 htmlcov/

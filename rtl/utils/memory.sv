@@ -1,5 +1,4 @@
 `include "brisc_pkg.svh"
-/* verilator lint_off WIDTH  */
 
 module memory
   import brisc_pkg::*;
@@ -9,14 +8,8 @@ module memory
 
 ) (
     input logic clk,
-    input logic req,
-    input logic req_store,
-    input logic [ADDRESS_WIDTH-1:0] req_addr,
-    input logic [CACHE_LINE_WIDTH-1:0] req_evict_data,
-    output logic [CACHE_LINE_WIDTH-1:0] fill_data,
-    output logic [ADDRESS_WIDTH-1:0] fill_addr,
-    output logic fill
-
+    input mem_req_t req,
+    output mem_resp_t resp
 );
   localparam int unsigned WORDS_IN_LINE = CACHE_LINE_WIDTH / WORD_WIDTH;
   localparam int unsigned WORD_OFFSET_WIDTH = $clog2(WORDS_IN_LINE);
@@ -45,7 +38,7 @@ module memory
   struct packed {
     logic [CACHE_LINE_WIDTH-1:0] data;
     logic [ADDRESS_WIDTH-1:0] addr;
-    logic valid;
+    logic ready;
   }
       fill_aux[MEM_RESP_DELAY], fill_delayed;
 
@@ -54,13 +47,14 @@ module memory
 
     datas_n = datas_q;
 
-    mem_req_aux[0].data = req_evict_data;
-    mem_req_aux[0].addr = req_addr;
-    mem_req_aux[0].req = req;
-    mem_req_aux[0].req_store = req_store;
+    mem_req_aux[0].data = req.data;
+    mem_req_aux[0].addr = req.addr;
+    mem_req_aux[0].req = req.valid;
+    mem_req_aux[0].req_store = req.rw;
 
     word_addr_delayed = mem_req_delayed.addr[ADDRESS_WIDTH-1:BYTE_OFFSET_WIDTH];
 
+    /* verilator lint_off WIDTH  */
     for (int unsigned i = 0; i < WORDS_IN_LINE; ++i) begin
       datas_n[word_addr_delayed+i] = mem_req_delayed.data[i*WORD_WIDTH+:WORD_WIDTH];
     end
@@ -71,23 +65,18 @@ module memory
     end
     fill_aux[0].data = read_data;
     fill_aux[0].addr = mem_req_delayed.addr;
-    fill_aux[0].valid = mem_req_delayed.req & ~mem_req_delayed.req_store;
+    fill_aux[0].ready = mem_req_delayed.req & ~mem_req_delayed.req_store;
 
 
-    fill_data = fill_delayed.data;
-    fill_addr = fill_delayed.addr;
-    fill = fill_delayed.valid;
+    resp.data = fill_delayed.data;
+    resp.addr = fill_delayed.addr;
+    resp.ready = fill_delayed.ready;
   end
 
 
   always_ff @(posedge clk) begin
     if (mem_req_delayed.req & mem_req_delayed.req_store) begin
       datas_q <= datas_n;
-    end
-    if (fill_delayed.valid) begin
-      for (int unsigned i = 0; i < MEM_REQ_DELAY; ++i) begin
-        fill_aux[i] <= '{default: 0};
-      end
     end
 
     for (int unsigned i = 0; i < MEM_REQ_DELAY - 1; ++i) begin
