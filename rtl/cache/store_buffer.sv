@@ -25,7 +25,6 @@ module store_buffer
 
     // Fowarding and stalling
     output logic [XLEN-1:0] read_data_out,
-    output logic [XLEN-1:0] read_addr_out,
     output logic read_valid_out,
     output data_size_e data_size_out
 );
@@ -70,7 +69,6 @@ module store_buffer
     empty = cnt_q == 0;
 
     read_data_out = entries_q[found_idx].data;
-    read_addr_out = entries_q[found_idx].addr;
 
     flush_data_out = entries_q[read_ptr_q].data;
     flush_addr_out = entries_q[read_ptr_q].addr;

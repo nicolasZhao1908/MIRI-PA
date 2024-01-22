@@ -74,6 +74,13 @@ module core
 
   logic branch_prediction_F, branch_prediction_D;
 
+  logic [REG_BITS-1:0] alu_rd_WB, mul_rd_WB;
+  logic mul_valid_D, alu_valid_D, valid_M1, valid_M5, alu_valid_A, alu_valid_C;
+  logic valids_M[MUL_DELAY];
+  logic [XLEN-1:0] result_M1, result_M5;
+  logic [REG_BITS-1:0] rd_M1, rd_M5;
+  logic mul_valid_WB;
+  logic flush_C;
 
   fetch_stage fetch (
       .clk(clk),
@@ -97,7 +104,7 @@ module core
       //Branch predictor
       .jump_taken_from_address(pc_out_A),
       .invalidate_branch_predictor(branch_prediction_wrong),
-      .branch_prediction(branch_prediction_F) // out
+      .branch_prediction(branch_prediction_F)  // out
       // 
   );
 
@@ -139,19 +146,13 @@ module core
       .data_size_out(data_size_D),
       .xcpt_out(xcpt_D),
 
-      .branch_prediction_in(branch_prediction_F),
+      .branch_prediction_in (branch_prediction_F),
       .branch_prediction_out(branch_prediction_D)
   );
 
-  logic [REG_BITS-1:0] alu_rd_WB, mul_rd_WB;
-  logic mul_valid_D, alu_valid_D, valid_M1, valid_M5, alu_valid_A, alu_valid_C;
-  logic valids_M[MUL_DELAY-1];
-  logic [XLEN-1:0] result_M1, result_M, result_M5, pc_out_A;
-  logic [REG_BITS-1:0] rd_M1, rd_M5;
   xcpt_e xcpt_M;
-  logic mul_valid_WB;
-  logic flush_C;
   logic branch_prediction_wrong;
+  logic [XLEN-1:0] pc_out_A;
 
   alu_stage alu (
       .clk(clk),
@@ -242,8 +243,10 @@ module core
       .reset(reset),
       .stall_in(stall_A),
       .flush_in(flush_A),
+
       .fwd_src1_in(fwd_src1_A),
       .fwd_src2_in(fwd_src2_A),
+
       .rs1_data_in(rs1_data_D),
       .rs2_data_in(rs2_data_D),
 
@@ -263,7 +266,7 @@ module core
 
       .rs1_out (rs1_A),
       .rs2_out (rs2_A),
-      .xcpt_out(xcpt_M)
+      .xcpt_out()
   );
 
 
@@ -299,7 +302,7 @@ module core
       .result_src_in(result_src_C),
       .reg_write_in (reg_write_C),
       .reg_write_out(reg_write_WB),
-      .rd_write_out(write_rd_WB)
+      .rd_write_out (write_rd_WB)
   );
 
 

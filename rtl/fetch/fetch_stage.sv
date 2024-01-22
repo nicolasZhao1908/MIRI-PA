@@ -39,6 +39,7 @@ module fetch_stage
   always_comb begin
     cpu_req.valid = ~pc_src_in & ~invalidate_branch_predictor;
     cpu_req.rw = 0;
+    cpu_req.data = 0;
     cpu_req.addr = pc_out;
     cpu_req.size = W;
 

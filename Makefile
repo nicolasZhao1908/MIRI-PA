@@ -37,7 +37,6 @@ core: $(VERILOG_SOURCES) $(SIMFILE)
 	$(MAKE) -j -C obj_dir -f Vtop.mk Vtop
 	obj_dir/Vtop -t
 
-
 waves: wave.fst waves.tcl
 	$(GTKWAVE) $< --script=$(word 2,$^) > /dev/null 2>&1 &
 

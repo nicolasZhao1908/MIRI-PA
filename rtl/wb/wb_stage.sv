@@ -38,6 +38,7 @@ module wb_stage
   always_comb begin
     result_out = 0;
     rd_write_out = 0;
+    reg_write_out = 0;
     if (alu_valid_w) begin
       unique case (result_src_w)
         FROM_ALU: begin
@@ -53,12 +54,13 @@ module wb_stage
           result_out = 'x;
         end
       endcase
+      reg_write_out = reg_write_w;
       rd_write_out = alu_rd_out;
     end else if (mul_valid_out) begin
       result_out = mul_res_w;
       rd_write_out = mul_rd_out;
+      reg_write_out = mul_valid_out;
     end
-    reg_write_out = reg_write_w | mul_valid_out;
   end
 
   // Pipeline registers C->WB

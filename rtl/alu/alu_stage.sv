@@ -64,7 +64,6 @@ module alu_stage
   logic [XLEN-1:0] src2;
   logic [XLEN-1:0] rs1_data_w;
   logic [XLEN-1:0] rs2_data_w;
-  logic [XLEN-1:0] pc_next_w;
 
   alu_src1_e alu_src1_w;
   alu_src2_e alu_src2_w;

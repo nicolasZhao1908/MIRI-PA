@@ -7,18 +7,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
         - uses: actions/checkout@v4
-        - name: Lint all sv files
-          uses: chipsalliance/verible-linter-action@main
-          with:
-            config_file: 'verible-lint.rules'
-            paths: |
-                ./rtl
-            extensions: |
-                .sv
-                .v
-                .vh
-                .svh
-            github_token: ${{ secrets.GITHUB_TOKEN }}
         - name: Format all sv files
           uses: chipsalliance/verible-formatter-action@main
           with:

@@ -9,9 +9,9 @@ module regfile
     input logic clk,
     input logic reset,
 
-    input logic [REG_WIDTH-1:0] rs1_addr,
-    input logic [REG_WIDTH-1:0] rs2_addr,
-    input logic [REG_WIDTH-1:0] rd_addr,
+    input logic [REGMSB-1:0] rs1_addr,
+    input logic [REGMSB-1:0] rs2_addr,
+    input logic [REGMSB-1:0] rd_addr,
 
     input logic [REG_LENGTH-1:0] write_data,
     input logic enable,
@@ -19,7 +19,7 @@ module regfile
     output logic [REG_LENGTH-1:0] rs1_data,
     output logic [REG_LENGTH-1:0] rs2_data
 );
-  localparam integer unsigned REG_WIDTH = $clog2(REG_LENGTH);
+  localparam integer unsigned REGMSB = $clog2(REG_LENGTH);
   logic [REG_LENGTH-1:0] regs_n[REG_NUM];
   logic [REG_LENGTH-1:0] regs_q[REG_NUM];
 

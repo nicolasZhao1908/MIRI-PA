@@ -12,9 +12,9 @@
 // 
 
 .data
-    C: .fill 16, 4, 0
-    A: .fill 16, 4, 2
-    B: .fill 16, 4, 3
+    C: .fill 16384, 4, 0
+    A: .fill 16384, 4, 3
+    B: .fill 16384, 4, 2
     size: .word 4
 
 .text
@@ -40,11 +40,12 @@ dot:
     addi a6, a6, 1
     beq t3, a6, loop_j
     addi t0, t0, 4
-    addi t1, t1, 16 // 4*4
+    addi t1, t1, 512 // 16 4*4 word_size*size
     j dot
 loop_j:
-    addi t0, t0, -12 // 4*3
-    addi t1, t1, -48 // 4*4*3
+    addi t0, t0, -508 // 4*3 word_size*(size-1)
+    li  s2, -65024 
+    add t1, t1, s2 // 4*4*3 word_size*size*(size-1)
     sw t4, 0(t2)
     addi t2, t2, 4
     addi a7, a7, 1 
@@ -54,8 +55,8 @@ loop_j:
 loop_i:
     addi a5, a5, 1
     beq t3, a5, end
-    addi t0, t0, 16 // 4*4
-    addi t1, t1, -12 // 4*3
+    addi t0, t0, 512 // 4*4  word_size*size
+    addi t1, t1, -508 // 4*3 word_size*(size-1)
     j init_j
 end:
     j end

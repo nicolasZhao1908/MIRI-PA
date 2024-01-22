@@ -11,7 +11,6 @@ module cache
     output cache_set_t read_data
 );
   cache_set_t cache_sets_q[NUM_CACHE_LINES], cache_sets_n[NUM_CACHE_LINES];
-  logic [SET_WIDTH-1:0] addr_set;
 
   always_comb begin
     cache_sets_n = cache_sets_q;

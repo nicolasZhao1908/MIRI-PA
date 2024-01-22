@@ -3,7 +3,6 @@
 module memory
   import brisc_pkg::*;
 #(
-    parameter integer unsigned DATA_TRANSFER_TIME = MEM_RESP_DELAY,
     parameter int unsigned MEM_DEPTH = brisc_pkg::MEM_DEPTH
 
 ) (
@@ -12,7 +11,6 @@ module memory
     output mem_resp_t resp
 );
   localparam int unsigned WORDS_IN_LINE = CACHE_LINE_WIDTH / WORD_WIDTH;
-  localparam int unsigned WORD_OFFSET_WIDTH = $clog2(WORDS_IN_LINE);
   localparam int unsigned BYTE_OFFSET_WIDTH = $clog2(WORD_WIDTH / BYTE_WIDTH);
 
 

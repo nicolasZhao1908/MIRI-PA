@@ -10,7 +10,7 @@ module hazard
     input pc_src_e pc_src_A_in,
     input logic icache_ready_in,
     input logic dcache_ready_in,
-    input logic valids_M_in[MUL_DELAY-1],
+    input logic valids_M_in[MUL_DELAY],
     output logic stall_F_out,
     output logic stall_D_out,
     output logic stall_A_out,
@@ -38,7 +38,7 @@ module hazard
     pc_taken_w = '0;
     mul_stall = '0;
 
-    for (int unsigned i = 0; i < MUL_DELAY - 1; i++) begin
+    for (int unsigned i = 0; i < MUL_DELAY; i++) begin
       if (valids_M_in[i]) begin
         mul_stall = 1;
       end
@@ -49,8 +49,8 @@ module hazard
     load_stall_w = (result_src_A_in == FROM_CACHE) &
                  ((rs1_D_in == rd_A_in) | (rs2_D_in == rd_A_in));
     stall_F_out = load_stall_w | ~dcache_ready_in | ~icache_ready_in | mul_stall;
-    stall_D_out = load_stall_w | ~dcache_ready_in | mul_stall;
-    stall_A_out = ~dcache_ready_in | mul_stall;
+    stall_D_out = load_stall_w | ~dcache_ready_in | mul_stall | (~icache_ready_in & ~dcache_ready_in);
+    stall_A_out = ~dcache_ready_in | mul_stall | (~icache_ready_in & ~dcache_ready_in);
     stall_C_out = ~dcache_ready_in;
 
     // Flush on control hazard

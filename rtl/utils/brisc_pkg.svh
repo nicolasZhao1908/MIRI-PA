@@ -16,13 +16,7 @@ package brisc_pkg;
   parameter int unsigned OPCODE_WIDTH = 7;
   parameter int unsigned CACHE_LINE_WIDTH = 128;
 
-  // [TODO]: Set correct MEM size for matrix multiply test
-  // 3 matrices of 128x128 words so 128x128x4x3
-  // Data address 0x4000
-  // (0x4000 + 128x128x128x4x3)/4 ~= 16384 ~= 2^14
-  // so let's try 2^15
-  // parameter int unsigned MEM_DEPTH = 1 << 15;
-  parameter int unsigned MEM_DEPTH = 1 << 13;
+  parameter int unsigned MEM_DEPTH = 1 << 16;
   parameter int unsigned NUM_CACHE_LINES = 4;
   parameter int unsigned NUM_ROB_ENTRIES = 1 << 4;
   parameter int unsigned REG_BITS = $clog2(NUM_REG);

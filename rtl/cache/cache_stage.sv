@@ -47,8 +47,8 @@ module cache_stage
   logic [ADDRESS_WIDTH-1:0] stb_flush_addr;
   logic stb_read_ready;
   logic [XLEN-1:0] stb_read_data;
-  logic [XLEN-1:0] stb_read_addr;
   logic [XLEN-1:0] stb_write_data;
+  // TODO
   data_size_e stb_data_size;
 
   cpu_req_t cpu_req;
@@ -102,7 +102,6 @@ module cache_stage
 
       // Fowarding and stalling
       .read_data_out (stb_read_data),
-      .read_addr_out (stb_read_addr),
       .read_valid_out(stb_read_ready),
       .data_size_out (stb_data_size)
   );
