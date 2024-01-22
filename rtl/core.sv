@@ -115,6 +115,9 @@ module core
       .imm_out(imm_D),
       .pc_plus4_out(pc_plus4_D),
 
+      .valid_mul_out(mul_valid_D),
+      .valid_add_out(alu_valid_D),
+
       // CTRL signals
       .reg_write_out(reg_write_D),
       .result_src_out(result_src_D),
@@ -127,6 +130,12 @@ module core
       .data_size_out(data_size_D),
       .xcpt_out(xcpt_D)
   );
+  logic [REG_BITS-1:0] alu_rd_WB, mul_rd_WB;
+  logic mul_valid_D, alu_valid_D, valid_M1, valid_M5, alu_valid_A, alu_valid_C;
+  logic valids_M[MUL_DELAY-1];
+  logic [XLEN-1:0] result_M1, result_M, result_M5;
+  logic [REG_BITS-1:0] rd_M1, rd_M5;
+  xcpt_e xcpt_M;
 
   alu_stage alu (
       .clk(clk),
@@ -156,6 +165,9 @@ module core
       .rs1_out(rs1_A),
       .rs2_out(rs2_A),
 
+      .alu_valid_in (alu_valid_D),
+      .alu_valid_out(alu_valid_A),
+
       .write_data_out(write_data_A),
 
       .reg_write_in(reg_write_D),
@@ -175,12 +187,13 @@ module core
       .data_size_out(data_size_A),
       .xcpt_out(xcpt_A)
   );
+  logic flush_C;
 
   cache_stage cache (
       .clk(clk),
       .reset(reset),
       .stall_in(stall_C),
-      .flush_in(0),
+      .flush_in(flush_C),
       .mem_resp_in(mem_resp),
       .mem_req_out(arb_req_dcache),
       .arbiter_grant_in(dgrant),
@@ -193,13 +206,59 @@ module core
       .read_data_out(read_data_C),
       .pc_plus4_out(pc_plus4_C),
       .rd_out(rd_C),
+
+      .alu_valid_in  (alu_valid_A),
+      .alu_valid_out (alu_valid_C),
       // CTRL signals
-      .data_size_in(data_size_A),
-      .reg_write_in(reg_write_A),
-      .mem_write_in(mem_write_A),
-      .result_src_in(result_src_A),
-      .reg_write_out(reg_write_C),
+      .data_size_in  (data_size_A),
+      .reg_write_in  (reg_write_A),
+      .mem_write_in  (mem_write_A),
+      .result_src_in (result_src_A),
+      .reg_write_out (reg_write_C),
       .result_src_out(result_src_C)
+  );
+
+
+  mul_stage mul (
+      .clk(clk),
+      .reset(reset),
+      .stall_in(stall_A),
+      .flush_in(flush_A),
+      .fwd_src1_in(fwd_src1_A),
+      .fwd_src2_in(fwd_src2_A),
+      .rs1_data_in(rs1_data_D),
+      .rs2_data_in(rs2_data_D),
+
+      .alu_res_C_in(alu_res_C),
+      .res_WB_in(result_WB),
+
+      .valid_in (mul_valid_D),
+      .valid_out(valid_M1),
+
+      .result_out(result_M1),
+
+      .rd_in (rd_D),
+      .rd_out(rd_M1),
+
+      .rs1_in(rs1_D),
+      .rs2_in(rs2_D),
+
+      .rs1_out (rs1_A),
+      .rs2_out (rs2_A),
+      .xcpt_out(xcpt_M)
+  );
+
+
+  mul_regs mul_delayed (
+      .clk(clk),
+      .reset(reset),
+      .valids_out(valids_M),
+      .result_in(result_M1),
+      .result_out(result_M5),
+      .rd_in(rd_M1),
+      .rd_out(rd_M5),
+      .valid_in(valid_M1),
+      .valid_out(valid_M5)
   );
 
   wb_stage write_back (
@@ -207,22 +266,30 @@ module core
       .reset(reset),
       .flush_in(flush_WB),
       .alu_res_in(alu_res_C),
+      .alu_valid_in(alu_valid_C),
+      .alu_rd_in(rd_C),
+      .alu_rd_out(alu_rd_WB),
+      .mul_res_in(result_M5),
+      .mul_valid_in(valid_M5),
+      .mul_rd_in(rd_M5),
+      .mul_rd_out(mul_rd_WB),
       .read_data_in(read_data_C),
       .pc_plus4_in(pc_plus4_C),
-      .rd_in(rd_C),
-      .rd_out(rd_WB),
       .result_out(result_WB),
-      // CTRL signals
+
       .result_src_in(result_src_C),
-      .reg_write_in(reg_write_C),
+      .reg_write_in (reg_write_C),
       .reg_write_out(reg_write_WB)
   );
+
 
   forward forward_unit (
       .rs1_A_in(rs1_A),
       .rs2_A_in(rs2_A),
       .rd_C_in(rd_C),
-      .rd_WB_in(rd_WB),
+      /*ALU/MUL pipeline*/
+      .alu_rd_WB_in(alu_rd_WB),
+      .mul_rd_WB_in(mul_rd_WB),
       .reg_write_C_in(reg_write_C),
       .reg_write_WB_in(reg_write_WB),
       .fwd_src1_out(fwd_src1_A),
@@ -233,18 +300,19 @@ module core
       .rs1_D_in(rs1_D),
       .rs2_D_in(rs2_D),
       .rd_A_in(rd_A),
+      .valids_M_in(valids_M),
       .result_src_A_in(result_src_A),
       .icache_ready_in(icache_ready),
       .dcache_ready_in(dcache_ready),
       .pc_src_A_in(pc_src_A_F),
       .stall_F_out(stall_F),
+      .stall_C_out(stall_C),
+      .stall_A_out(stall_A),
       .stall_D_out(stall_D),
       .flush_D_out(flush_D),
       .flush_A_out(flush_A),
-      .stall_C_out(stall_C),
-      .stall_A_out(stall_A),
+      .flush_C_out(flush_A),
       .flush_WB_out(flush_WB)
-
   );
 
   arbiter arb (

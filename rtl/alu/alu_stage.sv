@@ -18,6 +18,9 @@ module alu_stage
     input logic [XLEN-1:0] alu_res_C_in,
     input logic [XLEN-1:0] result_WB_in,
 
+    input  logic alu_valid_in,
+    output logic alu_valid_out,
+
     input logic [REG_BITS-1:0] rd_in,
     input logic [REG_BITS-1:0] rs1_in,
     input logic [REG_BITS-1:0] rs2_in,
@@ -147,6 +150,7 @@ module alu_stage
       alu_src2_w <= alu_src2_e'(0);
       alu_ctrl_w <= alu_ctrl_e'(0);
       data_size_out <= data_size_e'(0);
+      alu_valid_out <= 0;
 
     end else if (~stall_in) begin
       pc_plus4_out <= pc_plus4_in;
@@ -167,6 +171,7 @@ module alu_stage
       alu_src2_w <= alu_src2_in;
       alu_ctrl_w <= alu_ctrl_in;
       data_size_out <= data_size_in;
+      alu_valid_out <= alu_valid_in;
     end
   end
 endmodule

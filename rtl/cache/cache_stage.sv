@@ -9,6 +9,8 @@ module cache_stage
     input logic flush_in,
 
     input logic [XLEN-1:0] alu_res_in,
+    input logic alu_valid_in,
+    output logic alu_valid_out,
     output logic [XLEN-1:0] alu_res_out,
     input logic [XLEN-1:0] write_data_in,
     input logic [XLEN-1:0] pc_plus4_in,
@@ -22,8 +24,8 @@ module cache_stage
     input logic arbiter_grant_in,
 
     // From memory
-    input mem_resp_t mem_resp_in,
-    output mem_req_t mem_req_out,
+    input  mem_resp_t mem_resp_in,
+    output mem_req_t  mem_req_out,
 
     // Ctrl signals
     input logic reg_write_in,
@@ -118,6 +120,7 @@ module cache_stage
       reg_write_out <= 0;
       result_src_out <= result_src_e'(0);
       data_size_w <= data_size_e'(0);
+      alu_valid_out <= 0;
     end else if (~stall_in) begin
       stb_write_data <= write_data_in;
       alu_res_out <= alu_res_in;
@@ -129,6 +132,7 @@ module cache_stage
       reg_write_out <= reg_write_in;
       result_src_out <= result_src_in;
       data_size_w <= data_size_in;
+      alu_valid_out <= alu_valid_in;
     end
   end
 endmodule

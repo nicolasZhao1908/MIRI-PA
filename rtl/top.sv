@@ -1,6 +1,6 @@
 `include "brisc_pkg.svh"
 
-module core_top
+module top
   import brisc_pkg::*;
 (
     input logic clk,

@@ -37,12 +37,14 @@ module decode_stage
     output alu_src1_e alu_src1_out,
     output alu_src2_e alu_src2_out,
     output data_size_e data_size_out,
-    output xcpt_e xcpt_out
+    output xcpt_e xcpt_out,
+
+    output logic valid_mul_out,
+    output logic valid_add_out
 );
 
 
   logic [ILEN-1:0] instr_w;
-  logic [XLEN-1:0] imm_w;
   imm_src_e imm_src_w;
 
   ctrl ctrl_unit (
@@ -79,9 +81,12 @@ module decode_stage
   );
 
   always_comb begin
+    valid_mul_out = ~(instr_w == NOP) & (alu_ctrl_out == MUL);
+    valid_add_out = ~(instr_w == NOP) & (alu_ctrl_out != MUL);
+
     rs1_out = instr_w[19:15];
     rs2_out = instr_w[24:20];
-    rd_out  = instr_w[11:7];
+    rd_out = instr_w[11:7];
     unique case (imm_src_w)
       I_IMM: begin
         imm_out = {{20{instr_w[31]}}, instr_w[31:20]};

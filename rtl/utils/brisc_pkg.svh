@@ -78,9 +78,9 @@ package brisc_pkg;
   } alu_op_e;
 
   typedef enum logic [1:0] {
-    FROM_ALU = 2'b00,
-    FROM_CACHE = 2'b01,
-    FROM_PC_NEXT = 2'b10
+    FROM_ALU,
+    FROM_CACHE,
+    FROM_PC_NEXT
   } result_src_e;
 
   typedef enum logic {

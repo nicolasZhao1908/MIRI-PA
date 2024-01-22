@@ -24,7 +24,7 @@ module memory
 
   initial begin
     // read both instructions and data
-    $readmemh("../../programs/mem.hex", datas_q);
+    $readmemh("programs/mem.hex", datas_q);
   end
 
   struct packed {
