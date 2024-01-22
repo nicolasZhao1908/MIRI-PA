@@ -64,7 +64,7 @@ module core
   logic stall_C;
 
   logic [XLEN-1:0] result_WB;
-  logic [REG_BITS-1:0] rd_WB;
+  logic [REG_BITS-1:0] write_rd_WB;
   logic reg_write_WB;
   logic flush_WB;
 
@@ -101,7 +101,7 @@ module core
       .pc_in(pc_F),
 
       .result_WB_in(result_WB),
-      .rd_WB_in(rd_WB),
+      .rd_WB_in(write_rd_WB),
       .reg_write_WB_in(reg_write_WB),
 
       .pc_plus4_in(pc_plus4_F),
@@ -130,12 +130,15 @@ module core
       .data_size_out(data_size_D),
       .xcpt_out(xcpt_D)
   );
+
   logic [REG_BITS-1:0] alu_rd_WB, mul_rd_WB;
   logic mul_valid_D, alu_valid_D, valid_M1, valid_M5, alu_valid_A, alu_valid_C;
   logic valids_M[MUL_DELAY-1];
   logic [XLEN-1:0] result_M1, result_M, result_M5;
   logic [REG_BITS-1:0] rd_M1, rd_M5;
   xcpt_e xcpt_M;
+  logic mul_valid_WB;
+  logic flush_C;
 
   alu_stage alu (
       .clk(clk),
@@ -187,7 +190,6 @@ module core
       .data_size_out(data_size_A),
       .xcpt_out(xcpt_A)
   );
-  logic flush_C;
 
   cache_stage cache (
       .clk(clk),
@@ -273,13 +275,15 @@ module core
       .mul_valid_in(valid_M5),
       .mul_rd_in(rd_M5),
       .mul_rd_out(mul_rd_WB),
+      .mul_valid_out(mul_valid_WB),
       .read_data_in(read_data_C),
       .pc_plus4_in(pc_plus4_C),
       .result_out(result_WB),
 
       .result_src_in(result_src_C),
       .reg_write_in (reg_write_C),
-      .reg_write_out(reg_write_WB)
+      .reg_write_out(reg_write_WB),
+      .rd_write_out(write_rd_WB)
   );
 
 
@@ -290,6 +294,7 @@ module core
       /*ALU/MUL pipeline*/
       .alu_rd_WB_in(alu_rd_WB),
       .mul_rd_WB_in(mul_rd_WB),
+      .mul_valid_WB_in(mul_valid_WB),
       .reg_write_C_in(reg_write_C),
       .reg_write_WB_in(reg_write_WB),
       .fwd_src1_out(fwd_src1_A),
