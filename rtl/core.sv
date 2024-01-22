@@ -98,6 +98,7 @@ module core
       .jump_taken_from_address(pc_out_A),
       .invalidate_branch_predictor(branch_prediction_wrong),
       .branch_prediction(branch_prediction_F) // out
+      // 
   );
 
   decode_stage decode (

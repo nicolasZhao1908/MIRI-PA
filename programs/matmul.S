@@ -36,8 +36,8 @@ dot:
     lw t5, 0(t0)
     lw t6, 0(t1)
     mul a4, t5, t6
-    addi a6, a6, 1
     add t4, t4, a4
+    addi a6, a6, 1
     beq t3, a6, loop_j
     addi t0, t0, 4
     addi t1, t1, 16 // 4*4
