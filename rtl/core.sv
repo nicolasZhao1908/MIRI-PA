@@ -316,7 +316,7 @@ module core
       .stall_D_out(stall_D),
       .flush_D_out(flush_D),
       .flush_A_out(flush_A),
-      .flush_C_out(flush_A),
+      .flush_C_out(flush_C),
       .flush_WB_out(flush_WB)
   );
 

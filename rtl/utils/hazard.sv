@@ -11,14 +11,14 @@ module hazard
     input logic icache_ready_in,
     input logic dcache_ready_in,
     input logic valids_M_in[MUL_DELAY-1],
-    output stall_F_out,
-    output stall_D_out,
-    output stall_A_out,
-    output stall_C_out,
-    output flush_D_out,
-    output flush_A_out,
-    output flush_C_out,
-    output flush_WB_out
+    output logic stall_F_out,
+    output logic stall_D_out,
+    output logic stall_A_out,
+    output logic stall_C_out,
+    output logic flush_D_out,
+    output logic flush_A_out,
+    output logic flush_C_out,
+    output logic flush_WB_out
 );
 
   logic load_stall_w;
@@ -53,8 +53,8 @@ module hazard
 
     // Flush on control hazard
     pc_taken_w = (pc_src_A_in == FROM_A);
-    flush_D_out = (pc_taken_w | ~icache_ready_in) & (~stall_C_out);
-    flush_A_out = (pc_taken_w | load_stall_w) & ~stall_C_out;
+    flush_D_out = (pc_taken_w | ~icache_ready_in) & dcache_ready_in;
+    flush_A_out = (pc_taken_w | load_stall_w) & dcache_ready_in;
     flush_C_out = mul_stall;
     flush_WB_out = ~dcache_ready_in;
   end

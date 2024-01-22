@@ -24,7 +24,7 @@ module forward
     // Forwarding C -> EX or WB -> EX
     if (((rs1_A_in == rd_C_in) & reg_write_C_in) & (rs1_A_in != 0)) begin
       fwd_src1_out = FROM_C;
-    end else if (((((rs1_A_in == alu_rd_WB_in) |  & reg_write_WB_in) |((rs1_A_in == mul_rd_WB_in) & mul_valid_WB_in))) & (rs1_A_in != 0)) begin
+    end else if (((((rs1_A_in == alu_rd_WB_in) & reg_write_WB_in) |((rs1_A_in == mul_rd_WB_in) & mul_valid_WB_in))) & (rs1_A_in != 0)) begin
       fwd_src1_out = FROM_WB;
     end else begin
       fwd_src1_out = NONE;
@@ -32,7 +32,7 @@ module forward
 
     if (((rs2_A_in == rd_C_in) & reg_write_C_in) & (rs2_A_in != 0)) begin
       fwd_src2_out = FROM_C;
-    end else if (((((rs2_A_in == alu_rd_WB_in) |  & reg_write_WB_in) |((rs2_A_in == mul_rd_WB_in) & mul_valid_WB_in))) & (rs2_A_in != 0)) begin
+    end else if (((((rs2_A_in == alu_rd_WB_in) & reg_write_WB_in) |((rs2_A_in == mul_rd_WB_in) & mul_valid_WB_in))) & (rs2_A_in != 0)) begin
       fwd_src2_out = FROM_WB;
     end else begin
       fwd_src2_out = NONE;
