@@ -25,9 +25,7 @@ module mul_regs
 
   always_comb begin
 
-    delayed[0].valid = valid_in;
-    delayed[0].result = result_in;
-    delayed[0].rd = rd_in;
+    
     valid_out = delayed[LATENCY-1].valid;
     result_out = delayed[LATENCY-1].result;
     rd_out = delayed[LATENCY-1].rd;
@@ -47,6 +45,9 @@ module mul_regs
       for (int unsigned i = 0; i < LATENCY - 1; ++i) begin
         delayed[i+1] <= delayed[i];
       end
+      delayed[0].valid <= valid_in;
+      delayed[0].result <= result_in;
+      delayed[0].rd <= rd_in;
     end
   end
 

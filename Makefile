@@ -49,4 +49,7 @@ clean:
 	rm -rf **/*/dump.vcd
 	rm -rf **/*/dump.fst
 
+cake:
+	echo "            \`'.\n       .\`' \` * . \n      :  *  *|  :\n       ' |  || '\n        \`|~'||'\n        v~v~v~v\n        !@!@!@!\n       _!_!_!_!_\n      |  ||    ||\n      |  ||   |||\n      }{{{{}}}{{{\nejm97   __||__\n"
+
 .PHONY: $(TARGETS) clean all wave core

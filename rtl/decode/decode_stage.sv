@@ -40,7 +40,10 @@ module decode_stage
     output xcpt_e xcpt_out,
 
     output logic valid_mul_out,
-    output logic valid_add_out
+    output logic valid_add_out,
+
+    input logic branch_prediction_in,
+    output logic branch_prediction_out
 );
 
 
@@ -119,6 +122,7 @@ module decode_stage
       instr_w <= instr_in;
       pc_out <= pc_in;
       pc_plus4_out <= pc_plus4_in;
+      branch_prediction_out <= branch_prediction_in;
     end
   end
 

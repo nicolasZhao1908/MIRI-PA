@@ -54,14 +54,17 @@ module alu_stage
     output logic reg_write_out,
     output result_src_e result_src_out,
     output logic mem_write_out,
-    output data_size_e data_size_out
+    output data_size_e data_size_out,
+
+    input logic branch_prediction,
+    output logic branch_prediction_wrong,
+    output logic [XLEN-1:0] pc_out
 );
   logic [XLEN-1:0] src1;
   logic [XLEN-1:0] src2;
   logic [XLEN-1:0] rs1_data_w;
   logic [XLEN-1:0] rs2_data_w;
   logic [XLEN-1:0] pc_next_w;
-  logic [XLEN-1:0] pc_w;
 
   alu_src1_e alu_src1_w;
   alu_src2_e alu_src2_w;
@@ -72,6 +75,8 @@ module alu_stage
   logic is_branch_w;
   logic is_jump_w;
   logic [XLEN-1:0] src2_w;
+
+  logic branch_prediction_wrong_w;
 
 
   always_comb begin
@@ -84,7 +89,7 @@ module alu_stage
       end
       default: begin
         if (alu_src1_w == FROM_PC) begin
-          src1 = pc_w;
+          src1 = pc_out;
         end else begin
           src1 = rs1_data_w;
         end
@@ -106,7 +111,14 @@ module alu_stage
     src2 = (alu_src2_w == FROM_IMM) ? imm_w : src2_w;
     write_data_out = src2_w;
     pc_src_out = pc_src_e'((is_branch_w & zero_w) | is_jump_w);
-    pc_target_out = pc_w + imm_w;
+    pc_target_out = pc_out + imm_w;
+
+    if ((pc_src_out == FROM_F) & branch_prediction) begin
+      branch_prediction_wrong_w = 1;
+    end else begin
+      branch_prediction_wrong_w = 0;
+    end
+
 
     xcpt_out = NO_XCPT;
     if (mem_write_out == 1 | result_src_out == FROM_CACHE) begin
@@ -136,7 +148,7 @@ module alu_stage
       rd_out <= 0;
       rs1_out <= 0;
       rs2_out <= 0;
-      pc_w <= 0;
+      pc_out <= 0;
       rs1_data_w <= 0;
       rs2_data_w <= 0;
       imm_w <= 0;
@@ -151,13 +163,14 @@ module alu_stage
       alu_ctrl_w <= alu_ctrl_e'(0);
       data_size_out <= data_size_e'(0);
       alu_valid_out <= 0;
+      branch_prediction_wrong <= 0;
 
     end else if (~stall_in) begin
       pc_plus4_out <= pc_plus4_in;
       rd_out <= rd_in;
       rs1_out <= rs1_in;
       rs2_out <= rs2_in;
-      pc_w <= pc_in;
+      pc_out <= pc_in;
       rs1_data_w <= rs1_data_in;
       rs2_data_w <= rs2_data_in;
       imm_w <= imm_in;
@@ -172,6 +185,7 @@ module alu_stage
       alu_ctrl_w <= alu_ctrl_in;
       data_size_out <= data_size_in;
       alu_valid_out <= alu_valid_in;
+      branch_prediction_wrong <= branch_prediction_wrong_w;
     end
   end
 endmodule

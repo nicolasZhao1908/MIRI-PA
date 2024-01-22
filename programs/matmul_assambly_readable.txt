@@ -36,7 +36,7 @@ inner:
 	lw t3, 0(t0)
 	lw a4, 0(t1)
 
-	add t3, t3, a4 // Normally a mul
+	mul t3, t3, a4
 	add t2, t2, t3
 	
 	addi t1, t1, 12 // size * 4
