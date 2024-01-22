@@ -37,7 +37,7 @@ module fetch_stage
   logic prediction_valid_n;
 
   always_comb begin
-    cpu_req.valid = ~pc_src_in;
+    cpu_req.valid = ~pc_src_in & ~invalidate_branch_predictor;
     cpu_req.rw = 0;
     cpu_req.addr = pc_out;
     cpu_req.size = W;
