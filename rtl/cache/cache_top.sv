@@ -64,9 +64,7 @@ module cache_top
       end
       B: begin
         cache_req_data.data[byte_offset*BYTE_LEN+:BYTE_LEN] = cpu_req.data[BYTE_LEN-1:0];
-        cpu_res.data = {
-          {WORD_LEN - BYTE_LEN{'0}}, cache_read_data[byte_offset*BYTE_LEN+:BYTE_LEN]
-        };
+        cpu_res.data = {{WORD_LEN - BYTE_LEN{'0}}, cache_read_data[byte_offset*BYTE_LEN+:BYTE_LEN]};
       end
     endcase
 

@@ -14,7 +14,7 @@ package brisc_pkg;
   parameter int unsigned WORD_LEN = 32;
   parameter int unsigned ADDR_LEN = 32;
 
-  parameter int unsigned MEM_DEPTH = 1 << 16;
+  parameter int unsigned MEM_DEPTH = 1 << 13;
   parameter int unsigned OPCODE_LEN = 7;
   parameter int unsigned REGMSB = $clog2(NUM_REG);
 
