@@ -13,8 +13,8 @@ module cache_top
     output cpu_result_t cpu_res
 );
 
-  localparam int unsigned TAGMSB = ADDRESS_WIDTH;
-  localparam int unsigned TAGLSB = SET_WIDTH + OFFSET_WIDTH;
+  localparam int unsigned TAGMSB = ADDR_LEN;
+  localparam int unsigned TAGLSB = SET_LEN + OFFSET_LEN;
 
   cache cache_unit (
       .clk(clk),
@@ -27,10 +27,10 @@ module cache_top
 
   cache_set_t cache_read_data;
   logic cache_rw;
-  logic [WORD_OFFSET_WIDTH-1:0] word_offset;
-  logic [OFFSET_WIDTH-1:0] byte_offset;
+  logic [WORD_OFFSET_LEN-1:0] word_offset;
+  logic [OFFSET_LEN-1:0] byte_offset;
   cache_set_t cache_req_data;
-  logic [SET_WIDTH-1:0] req_set, req_set_w;
+  logic [SET_LEN-1:0] req_set, req_set_w;
 
   enum logic [1:0] {
     COMPARE_TAG,
@@ -44,28 +44,28 @@ module cache_top
     // defaults
     state_n = state_q;
     cpu_res = '{default: 0};
-    req_set = cpu_req.addr[SET_WIDTH+OFFSET_WIDTH-1:OFFSET_WIDTH];
-    req_set_w = cpu_req.addr[SET_WIDTH+OFFSET_WIDTH-1:OFFSET_WIDTH];
+    req_set = cpu_req.addr[SET_LEN+OFFSET_LEN-1:OFFSET_LEN];
+    req_set_w = cpu_req.addr[SET_LEN+OFFSET_LEN-1:OFFSET_LEN];
     mem_req = '{
         default: 0,
-        addr: {cpu_req.addr[TAGMSB-1:OFFSET_WIDTH], {OFFSET_WIDTH{1'b0}}},
+        addr: {cpu_req.addr[TAGMSB-1:OFFSET_LEN], {OFFSET_LEN{1'b0}}},
         data: cache_read_data.data
     };
     cache_rw = 0;
 
-    word_offset = cpu_req.addr[OFFSET_WIDTH-1:BYTE_OFFSET_WIDTH];
-    byte_offset = cpu_req.addr[OFFSET_WIDTH-1:0];
+    word_offset = cpu_req.addr[OFFSET_LEN-1:BYTE_OFFSET_LEN];
+    byte_offset = cpu_req.addr[OFFSET_LEN-1:0];
 
     /*read/write correct word/bytes */
     unique case (cpu_req.size)
       W: begin
-        cache_req_data.data[word_offset*WORD_WIDTH+:WORD_WIDTH] = cpu_req.data;
-        cpu_res.data = cache_read_data[word_offset*WORD_WIDTH+:WORD_WIDTH];
+        cache_req_data.data[word_offset*WORD_LEN+:WORD_LEN] = cpu_req.data;
+        cpu_res.data = cache_read_data[word_offset*WORD_LEN+:WORD_LEN];
       end
       B: begin
-        cache_req_data.data[byte_offset*BYTE_WIDTH+:BYTE_WIDTH] = cpu_req.data[BYTE_WIDTH-1:0];
+        cache_req_data.data[byte_offset*BYTE_LEN+:BYTE_LEN] = cpu_req.data[BYTE_LEN-1:0];
         cpu_res.data = {
-          {WORD_WIDTH - BYTE_WIDTH{'0}}, cache_read_data[byte_offset*BYTE_WIDTH+:BYTE_WIDTH]
+          {WORD_LEN - BYTE_LEN{'0}}, cache_read_data[byte_offset*BYTE_LEN+:BYTE_LEN]
         };
       end
     endcase
@@ -93,7 +93,7 @@ module cache_top
 
             /*miss with dirty line*/
             if (cache_read_data.dirty) begin
-              mem_req.addr = {cache_read_data.tag, req_set_w, {OFFSET_WIDTH{1'b0}}};
+              mem_req.addr = {cache_read_data.tag, req_set_w, {OFFSET_LEN{1'b0}}};
               mem_req.rw = '1;
               /*wait till write is completed*/
               state_n = WRITE_BACK;
@@ -111,7 +111,7 @@ module cache_top
           mem_req.valid = 1;
           /* waiting for fill*/
           if (mem_resp.ready & arbiter_grant &
-              mem_resp.addr[ADDRESS_WIDTH-1:OFFSET_WIDTH] == cpu_req.addr[ADDRESS_WIDTH-1:OFFSET_WIDTH]) begin
+              mem_resp.addr[ADDR_LEN-1:OFFSET_LEN] == cpu_req.addr[ADDR_LEN-1:OFFSET_LEN]) begin
             state_n = COMPARE_TAG;
             cache_req_data.data = mem_resp.data;
             cache_req_data.tag = cpu_req.addr[TAGMSB-1:TAGLSB];
@@ -132,7 +132,7 @@ module cache_top
             /* once we evict the line we fill with the clean line again*/
             mem_req.valid = '1;
             mem_req.rw = '0;
-            mem_req.addr = {cpu_req.addr[TAGMSB-1:BYTE_OFFSET_WIDTH], {BYTE_OFFSET_WIDTH{1'b0}}};
+            mem_req.addr = {cpu_req.addr[TAGMSB-1:BYTE_OFFSET_LEN], {BYTE_OFFSET_LEN{1'b0}}};
             state_n = ALLOCATE;
           end
         end else begin

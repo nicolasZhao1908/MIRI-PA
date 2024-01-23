@@ -20,12 +20,12 @@ module mul_stage
     input logic [XLEN-1:0] alu_res_C_in,
     input logic [XLEN-1:0] res_WB_in,
 
-    input  logic [REG_BITS-1:0] rs1_in,
-    output logic [REG_BITS-1:0] rs1_out,
-    input  logic [REG_BITS-1:0] rs2_in,
-    output logic [REG_BITS-1:0] rs2_out,
-    input  logic [REG_BITS-1:0] rd_in,
-    output logic [REG_BITS-1:0] rd_out,
+    input  logic [REGMSB-1:0] rs1_in,
+    output logic [REGMSB-1:0] rs1_out,
+    input  logic [REGMSB-1:0] rs2_in,
+    output logic [REGMSB-1:0] rs2_out,
+    input  logic [REGMSB-1:0] rd_in,
+    output logic [REGMSB-1:0] rd_out,
 
     output xcpt_e xcpt_out,
     output logic [XLEN-1:0] result_out

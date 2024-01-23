@@ -108,7 +108,7 @@ int main(int argc, char** argv)
 
     // start things going
     reset();
-    run(20000);
+    run(10000);
 
     if (tfp)
         tfp->close();

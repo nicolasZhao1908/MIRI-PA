@@ -12,11 +12,11 @@
 // 
 
 .data
-    C: .fill 16384, 4, 0
-    A: .fill 16384, 4, 3
-    B: .fill 16384, 4, 2
-    size: .word 128
-    neg: .word -65024
+    C: .fill 16, 4, 0
+    A: .fill 16, 4, 2
+    B: .fill 16, 4, 3
+    neg: .word -48
+    size: .word 4
 
 .text
 .global _start
@@ -26,7 +26,7 @@ _start:
     la t1, B
     la t2, C
     lw t3, size
-    lw  s2, neg // 4*127*128 
+    lw s2, neg
     addi a5, zero, 0
 
 init_j: 
@@ -42,11 +42,11 @@ dot:
     addi a6, a6, 1
     beq t3, a6, loop_j
     addi t0, t0, 4
-    addi t1, t1, 512 // 4*128
+    addi t1, t1, 16 // 4*4
     j dot
 loop_j:
-    addi t0, t0, -508 // 4*127
-    add t1, t1, s2
+    addi t0, t0, -12 // 4*3
+    add t1, t1, s2 // 4*4*3
     sw t4, 0(t2)
     addi t2, t2, 4
     addi a7, a7, 1 
@@ -56,8 +56,8 @@ loop_j:
 loop_i:
     addi a5, a5, 1
     beq t3, a5, end
-    addi t0, t0, 512 // 4*4  word_size*size
-    addi t1, t1, -508 // 4*3 word_size*(size-1)
+    addi t0, t0, 16 // 4*4
+    addi t1, t1, -12 // 4*3
     j init_j
 end:
     j end

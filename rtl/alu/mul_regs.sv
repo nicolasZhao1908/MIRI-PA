@@ -7,9 +7,9 @@ module mul_regs
 ) (
     input logic clk,
     input logic reset,
-    output logic [REG_BITS-1:0] rd_out,
+    output logic [REGMSB-1:0] rd_out,
     output logic valids_out[LATENCY],
-    input logic [REG_BITS-1:0] rd_in,
+    input logic [REGMSB-1:0] rd_in,
     input logic [XLEN-1:0] result_in,
     output logic [XLEN-1:0] result_out,
     input logic valid_in,
@@ -18,7 +18,7 @@ module mul_regs
 
   struct packed {
     logic [XLEN-1:0] result;
-    logic [REG_BITS-1:0] rd;
+    logic [REGMSB-1:0] rd;
     logic valid;
 
   } delayed[LATENCY];

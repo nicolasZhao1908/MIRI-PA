@@ -21,8 +21,6 @@ VERILOG_SOURCES=$(RTL_DIR)/core_top.sv \
 				$(RTL_DIR)/utils/arbiter.sv \
  				$(RTL_DIR)/utils/brisc_pkg.svh \
 				$(RTL_DIR)/utils/memory.sv \
-				$(RTL_DIR)/utils/ff.sv \
-				$(RTL_DIR)/utils/nff.sv \
 				$(RTL_DIR)/fetch/fetch_stage.sv \
 				$(RTL_DIR)/decode/decode_stage.sv \
 				$(RTL_DIR)/decode/ctrl.sv \

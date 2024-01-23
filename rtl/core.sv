@@ -18,9 +18,9 @@ module core
 
   logic stall_D;
   logic flush_D;
-  logic [REG_BITS-1:0] rd_D;
-  logic [REG_BITS-1:0] rs1_D;
-  logic [REG_BITS-1:0] rs2_D;
+  logic [REGMSB-1:0] rd_D;
+  logic [REGMSB-1:0] rs1_D;
+  logic [REGMSB-1:0] rs2_D;
   logic [XLEN-1:0] rs1_data_D;
   logic [XLEN-1:0] rs2_data_D;
   logic [XLEN-1:0] imm_D;
@@ -38,9 +38,9 @@ module core
   xcpt_e xcpt_D;
 
   logic [XLEN-1:0] pc_delta_A;
-  logic [REG_BITS-1:0] rd_A;
-  logic [REG_BITS-1:0] rs1_A;
-  logic [REG_BITS-1:0] rs2_A;
+  logic [REGMSB-1:0] rd_A;
+  logic [REGMSB-1:0] rs1_A;
+  logic [REGMSB-1:0] rs2_A;
   logic [XLEN-1:0] write_data_A;
   logic [XLEN-1:0] pc_plus4_A;
   logic [XLEN-1:0] alu_res_A;
@@ -57,14 +57,14 @@ module core
   logic [XLEN-1:0] pc_delta_C;
   logic [XLEN-1:0] read_data_C;
   logic [XLEN-1:0] alu_res_C;
-  logic [REG_BITS-1:0] rd_C;
+  logic [REGMSB-1:0] rd_C;
   logic reg_write_C;
   result_src_e result_src_C;
   logic [XLEN-1:0] pc_plus4_C;
   logic stall_C;
 
   logic [XLEN-1:0] result_WB;
-  logic [REG_BITS-1:0] write_rd_WB;
+  logic [REGMSB-1:0] write_rd_WB;
   logic reg_write_WB;
   logic flush_WB;
 
@@ -72,13 +72,13 @@ module core
   logic igrant, dgrant;
   logic icache_ready, dcache_ready;
 
-  logic branch_prediction_F, branch_prediction_D;
+  logic pred_taken_F, pred_taken_D;
 
-  logic [REG_BITS-1:0] alu_rd_WB, mul_rd_WB;
+  logic [REGMSB-1:0] alu_rd_WB, mul_rd_WB;
   logic mul_valid_D, alu_valid_D, valid_M1, valid_M5, alu_valid_A, alu_valid_C;
   logic valids_M[MUL_DELAY];
   logic [XLEN-1:0] result_M1, result_M5;
-  logic [REG_BITS-1:0] rd_M1, rd_M5;
+  logic [REGMSB-1:0] rd_M1, rd_M5;
   logic mul_valid_WB;
   logic flush_C;
 
@@ -102,9 +102,9 @@ module core
       .mem_resp_in(mem_resp),
 
       //Branch predictor
-      .jump_taken_from_address(pc_out_A),
-      .invalidate_branch_predictor(branch_prediction_wrong),
-      .branch_prediction(branch_prediction_F)  // out
+      .branch_pc_in  (pc_out_A),
+      .pred_wrong_in (pred_wrong_D),
+      .pred_taken_out(pred_taken_F)   // out
       // 
   );
 
@@ -146,13 +146,14 @@ module core
       .data_size_out(data_size_D),
       .xcpt_out(xcpt_D),
 
-      .branch_prediction_in (branch_prediction_F),
-      .branch_prediction_out(branch_prediction_D)
+      .pred_taken_in (pred_taken_F),
+      .pred_taken_out(pred_taken_D)
   );
 
   xcpt_e xcpt_M;
-  logic branch_prediction_wrong;
+  logic pred_wrong_D;
   logic [XLEN-1:0] pc_out_A;
+
 
   alu_stage alu (
       .clk(clk),
@@ -203,8 +204,8 @@ module core
       .mem_write_out(mem_write_A),
       .data_size_out(data_size_A),
       .xcpt_out(xcpt_A),
-      .branch_prediction(branch_prediction_D),
-      .branch_prediction_wrong(branch_prediction_wrong),
+      .pred_taken_in(pred_taken_D),
+      .pred_wrong_out(pred_wrong_D),
       .pc_out(pc_out_A)
   );
 
@@ -337,8 +338,7 @@ module core
       .flush_A_out(flush_A),
       .flush_C_out(flush_C),
       .flush_WB_out(flush_WB),
-
-      .branch_prediction_wrong(branch_prediction_wrong)
+      .pred_wrong_D_in(pred_wrong_D)
   );
 
   arbiter arb (

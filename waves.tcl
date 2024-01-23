@@ -140,6 +140,6 @@ foreach reg $registers {
   prettifySignal brisc_core.decode.rfile.regs_n\[[lindex $reg 0]\] $regColor [lindex $reg 1]
 }
 
-for {set i 4096} {$i < 100000} {incr i} {
+for {set i 4096} {$i < 4353} {incr i} {
   prettifySignal mem.datas_q\[$i\] Blue mem_data_$i
 }

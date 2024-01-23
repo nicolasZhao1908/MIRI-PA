@@ -24,6 +24,9 @@ memcpy: memcpy.elf
 matmul: matmul.elf
 	$(OBJCPY) $(OBJCPY_FLAGS) $< $(MEMHEX)
 
+matmul_4x4: matmul_4x4.elf
+	$(OBJCPY) $(OBJCPY_FLAGS) $< $(MEMHEX)
+
 %.elf: %.S
 	$(CC) ${CFLAGS} -T ${LD} $< $(XCPT) -o $@
 

@@ -4,6 +4,7 @@
     "verilog.linting.verilator.includePath": [
         "rtl/cache",
         "rtl/utils",
+        "rtl/inc",
         "rtl/alu",
         "rtl/decode",
         "rtl/fetch",

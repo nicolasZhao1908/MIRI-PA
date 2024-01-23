@@ -3,9 +3,9 @@
 module hazard
   import brisc_pkg::*;
 (
-    input logic [REG_BITS-1:0] rs1_D_in,
-    input logic [REG_BITS-1:0] rs2_D_in,
-    input logic [REG_BITS-1:0] rd_A_in,
+    input logic [REGMSB-1:0] rs1_D_in,
+    input logic [REGMSB-1:0] rs2_D_in,
+    input logic [REGMSB-1:0] rd_A_in,
     input result_src_e result_src_A_in,
     input pc_src_e pc_src_A_in,
     input logic icache_ready_in,
@@ -19,8 +19,7 @@ module hazard
     output logic flush_A_out,
     output logic flush_C_out,
     output logic flush_WB_out,
-
-    input logic branch_prediction_wrong
+    input logic pred_wrong_D_in
 );
 
   logic load_stall_w;
@@ -55,8 +54,8 @@ module hazard
 
     // Flush on control hazard
     pc_taken_w = (pc_src_A_in == FROM_A);
-    flush_D_out = ((pc_taken_w | ~icache_ready_in) & dcache_ready_in) | branch_prediction_wrong;
-    flush_A_out = ((pc_taken_w | load_stall_w) & dcache_ready_in) | branch_prediction_wrong;
+    flush_D_out = ((pc_taken_w | ~icache_ready_in) & dcache_ready_in) | pred_wrong_D_in;
+    flush_A_out = ((pc_taken_w | load_stall_w) & dcache_ready_in) | pred_wrong_D_in;
     flush_C_out = mul_stall;
     flush_WB_out = ~dcache_ready_in;
   end

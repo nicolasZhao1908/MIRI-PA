@@ -1,10 +1,8 @@
 `include "brisc_pkg.svh"
 
-module regfile
-  import brisc_pkg::XLEN;
-#(
-    parameter integer unsigned REG_LENGTH = XLEN,
-    parameter integer unsigned REG_NUM = 32
+module regfile #(
+    parameter integer unsigned XLEN = brisc_pkg::XLEN,
+    parameter integer unsigned NUM_REG = brisc_pkg::NUM_REG
 ) (
     input logic clk,
     input logic reset,
@@ -13,15 +11,15 @@ module regfile
     input logic [REGMSB-1:0] rs2_addr,
     input logic [REGMSB-1:0] rd_addr,
 
-    input logic [REG_LENGTH-1:0] write_data,
+    input logic [XLEN-1:0] write_data,
     input logic enable,
 
-    output logic [REG_LENGTH-1:0] rs1_data,
-    output logic [REG_LENGTH-1:0] rs2_data
+    output logic [XLEN-1:0] rs1_data,
+    output logic [XLEN-1:0] rs2_data
 );
-  localparam integer unsigned REGMSB = $clog2(REG_LENGTH);
-  logic [REG_LENGTH-1:0] regs_n[REG_NUM];
-  logic [REG_LENGTH-1:0] regs_q[REG_NUM];
+  localparam integer unsigned REGMSB = $clog2(XLEN);
+  logic [XLEN-1:0] regs_n[NUM_REG];
+  logic [XLEN-1:0] regs_q[NUM_REG];
 
   always_comb begin
     // Default
@@ -36,7 +34,7 @@ module regfile
 
   always_ff @(posedge clk) begin
     if (reset) begin
-      for (int unsigned i = 0; i < REG_NUM; ++i) begin
+      for (int unsigned i = 0; i < NUM_REG; ++i) begin
         regs_q[i] <= '0;
       end
     end else if (enable) begin

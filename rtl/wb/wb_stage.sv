@@ -13,16 +13,16 @@ module wb_stage
     output logic mul_valid_out,
     input logic [XLEN-1:0] read_data_in,
     input logic [XLEN-1:0] pc_plus4_in,
-    input logic [REG_BITS-1:0] alu_rd_in,
-    output logic [REG_BITS-1:0] alu_rd_out,
-    input logic [REG_BITS-1:0] mul_rd_in,
-    output logic [REG_BITS-1:0] mul_rd_out,
+    input logic [REGMSB-1:0] alu_rd_in,
+    output logic [REGMSB-1:0] alu_rd_out,
+    input logic [REGMSB-1:0] mul_rd_in,
+    output logic [REGMSB-1:0] mul_rd_out,
 
     // CTRL signals
     input logic reg_write_in,
     input result_src_e result_src_in,
 
-    output logic [REG_BITS-1:0] rd_write_out,
+    output logic [REGMSB-1:0] rd_write_out,
     output logic reg_write_out,
     output logic [XLEN-1:0] result_out
 );

@@ -15,8 +15,8 @@ module cache_stage
     input logic [XLEN-1:0] write_data_in,
     input logic [XLEN-1:0] pc_plus4_in,
     output logic [XLEN-1:0] pc_plus4_out,
-    input logic [REG_BITS-1:0] rd_in,
-    output logic [REG_BITS-1:0] rd_out,
+    input logic [REGMSB-1:0] rd_in,
+    output logic [REGMSB-1:0] rd_out,
 
     output logic [XLEN-1:0] read_data_out,
     output logic dcache_ready_out,
@@ -44,7 +44,7 @@ module cache_stage
 
   logic stb_flush;
   logic [XLEN-1:0] stb_flush_data;
-  logic [ADDRESS_WIDTH-1:0] stb_flush_addr;
+  logic [ADDR_LEN-1:0] stb_flush_addr;
   logic stb_read_ready;
   logic [XLEN-1:0] stb_read_data;
   logic [XLEN-1:0] stb_write_data;

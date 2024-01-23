@@ -12,15 +12,15 @@ module decode_stage
 
     // from WB stage
     input logic [XLEN-1:0] result_WB_in,
-    input logic [REG_BITS-1:0] rd_WB_in,
+    input logic [REGMSB-1:0] rd_WB_in,
     input logic reg_write_WB_in,
 
     // for JUMP
     input logic [XLEN-1:0] pc_plus4_in,
 
-    output logic [REG_BITS-1:0] rd_out,
-    output logic [REG_BITS-1:0] rs1_out,
-    output logic [REG_BITS-1:0] rs2_out,
+    output logic [REGMSB-1:0] rd_out,
+    output logic [REGMSB-1:0] rs1_out,
+    output logic [REGMSB-1:0] rs2_out,
     output logic [XLEN-1:0] pc_out,
     output logic [XLEN-1:0] rs1_data_out,
     output logic [XLEN-1:0] rs2_data_out,
@@ -42,8 +42,8 @@ module decode_stage
     output logic valid_mul_out,
     output logic valid_add_out,
 
-    input logic branch_prediction_in,
-    output logic branch_prediction_out
+    input logic pred_taken_in,
+    output logic pred_taken_out
 );
 
 
@@ -54,7 +54,7 @@ module decode_stage
       // IN
       .funct3(instr_w[14:12]),
       .funct7(instr_w[31:25]),
-      .opcode(instr_w[OPCODE_WIDTH-1:0]),
+      .opcode(instr_w[OPCODE_LEN-1:0]),
       // OUT
       .reg_write(reg_write_out),
       .imm_src(imm_src_w),
@@ -118,11 +118,12 @@ module decode_stage
       instr_w <= NOP;
       pc_out <= 0;
       pc_plus4_out <= 0;
+      pred_taken_out <= 0;
     end else if (~stall_in) begin
       instr_w <= instr_in;
       pc_out <= pc_in;
       pc_plus4_out <= pc_plus4_in;
-      branch_prediction_out <= branch_prediction_in;
+      pred_taken_out <= pred_taken_in;
     end
   end
 

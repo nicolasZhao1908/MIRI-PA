@@ -5,7 +5,7 @@ module ctrl
 (
     input logic [2:0] funct3,
     input logic [6:0] funct7,
-    input logic [OPCODE_WIDTH-1:0] opcode,
+    input logic [OPCODE_LEN-1:0] opcode,
     output logic reg_write,
     output imm_src_e imm_src,
     output result_src_e result_src,

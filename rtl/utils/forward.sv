@@ -3,11 +3,11 @@
 module forward
   import brisc_pkg::*;
 (
-    input logic [REG_BITS-1:0] rs1_A_in,
-    input logic [REG_BITS-1:0] rs2_A_in,
-    input logic [REG_BITS-1:0] rd_C_in,
-    input logic [REG_BITS-1:0] mul_rd_WB_in,
-    input logic [REG_BITS-1:0] alu_rd_WB_in,
+    input logic [REGMSB-1:0] rs1_A_in,
+    input logic [REGMSB-1:0] rs2_A_in,
+    input logic [REGMSB-1:0] rd_C_in,
+    input logic [REGMSB-1:0] mul_rd_WB_in,
+    input logic [REGMSB-1:0] alu_rd_WB_in,
     input logic mul_valid_WB_in,
     input logic reg_write_C_in,
     input logic reg_write_WB_in,

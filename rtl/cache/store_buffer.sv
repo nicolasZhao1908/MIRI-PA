@@ -12,7 +12,7 @@ module store_buffer
 
     input logic is_store,
     input logic is_load,
-    input logic [ADDRESS_WIDTH-1:0] addr_in,
+    input logic [ADDR_LEN-1:0] addr_in,
 
     // Add entries
     input logic [XLEN-1:0] write_data_in,
@@ -20,7 +20,7 @@ module store_buffer
 
     // Evict entries to cache
     output logic [XLEN-1:0] flush_data_out,
-    output logic [ADDRESS_WIDTH-1:0] flush_addr_out,
+    output logic [ADDR_LEN-1:0] flush_addr_out,
     output logic flush_out,
 
     // Fowarding and stalling
@@ -32,7 +32,7 @@ module store_buffer
   struct packed {
     logic valid;
     data_size_e data_size;
-    logic [ADDRESS_WIDTH-1:0] addr;
+    logic [ADDR_LEN-1:0] addr;
     logic [XLEN-1:0] data;
   }
       entries_n[NUM_ENTRIES], entries_q[NUM_ENTRIES];
