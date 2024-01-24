@@ -1,15 +1,13 @@
 # BRISC
 
 Basic RISC-V pipelined processor core developed for the final project of
-Processor Architecture course at UPC, with the following requirements:
+Processor Architecture course at UPC, with the following features:
 
 - Multicycle pipeline.
-- Instruction and data caches.
+- Instruction and write-back data caches.
 - Unified memory.
 - Store buffer.
-- Reorder buffer.
 - Full bypassing.
-- Virtual memory.
 - Exception and interruption handling.
 
 ## Supported instructions
