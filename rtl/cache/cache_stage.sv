@@ -8,6 +8,9 @@ module cache_stage
     input logic stall_in,
     input logic flush_in,
 
+    input  xcpt_e xcpt_in,
+    output xcpt_e xcpt_out,
+
     input logic [XLEN-1:0] alu_res_in,
     input logic alu_valid_in,
     output logic alu_valid_out,
@@ -119,6 +122,7 @@ module cache_stage
       reg_write_out <= 0;
       result_src_out <= result_src_e'(0);
       data_size_w <= data_size_e'(0);
+      xcpt_out <= xcpt_e'(0);
       alu_valid_out <= 0;
     end else if (~stall_in) begin
       stb_write_data <= write_data_in;
@@ -132,6 +136,7 @@ module cache_stage
       result_src_out <= result_src_in;
       data_size_w <= data_size_in;
       alu_valid_out <= alu_valid_in;
+      xcpt_out <= xcpt_in;
     end
   end
 endmodule

@@ -18,6 +18,10 @@ module wb_stage
     input logic [REGMSB-1:0] mul_rd_in,
     output logic [REGMSB-1:0] mul_rd_out,
 
+    input  xcpt_e alu_xcpt_in,
+    input  xcpt_e mul_xcpt_in,
+    output xcpt_e xcpt_out,
+
     // CTRL signals
     input logic reg_write_in,
     input result_src_e result_src_in,
@@ -34,6 +38,8 @@ module wb_stage
   logic [XLEN-1:0] read_data_w;
   logic [XLEN-1:0] pc_plus4_w;
   result_src_e result_src_w;
+
+  xcpt_e alu_xcpt_w, mul_xcpt_w;
 
   always_comb begin
     result_out = 0;
@@ -56,10 +62,12 @@ module wb_stage
       endcase
       reg_write_out = reg_write_w;
       rd_write_out = alu_rd_out;
+      xcpt_out = alu_xcpt_w;
     end else if (mul_valid_out) begin
       result_out = mul_res_w;
       rd_write_out = mul_rd_out;
       reg_write_out = mul_valid_out;
+      xcpt_out = mul_xcpt_w;
     end
   end
 
@@ -77,6 +85,9 @@ module wb_stage
       // CTRL SIGNALS
       result_src_w <= result_src_e'(0);
       reg_write_w <= 0;
+
+      alu_xcpt_w <= NO_XCPT;
+      mul_xcpt_w <= NO_XCPT;
     end else begin
       mul_res_w <= mul_res_in;
       mul_valid_out <= mul_valid_in;
@@ -86,9 +97,11 @@ module wb_stage
       alu_valid_w <= alu_valid_in;
       pc_plus4_w <= pc_plus4_in;
       read_data_w <= read_data_in;
-      // CTRL SIGNALS
       result_src_w <= result_src_in;
       reg_write_w <= reg_write_in;
+
+      alu_xcpt_w <= alu_xcpt_in;
+      mul_xcpt_w <= mul_xcpt_in;
     end
   end
 

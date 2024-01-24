@@ -19,7 +19,8 @@ module hazard
     output logic flush_A_out,
     output logic flush_C_out,
     output logic flush_WB_out,
-    input logic pred_wrong_D_in
+    input logic pred_wrong_D_in,
+    input xcpt_e xcpt_WB_in
 );
 
   logic load_stall_w;
@@ -54,10 +55,10 @@ module hazard
 
     // Flush on control hazard
     pc_taken_w = (pc_src_A_in == FROM_A);
-    flush_D_out = ((pc_taken_w | ~icache_ready_in) & dcache_ready_in) | pred_wrong_D_in;
-    flush_A_out = ((pc_taken_w | load_stall_w) & dcache_ready_in) | pred_wrong_D_in;
-    flush_C_out = mul_stall;
-    flush_WB_out = ~dcache_ready_in;
+    flush_D_out = ((pc_taken_w | ~icache_ready_in) & dcache_ready_in) | pred_wrong_D_in | (xcpt_WB_in != NO_XCPT);
+    flush_A_out = ((pc_taken_w | load_stall_w) & dcache_ready_in) | pred_wrong_D_in | (xcpt_WB_in != NO_XCPT);
+    flush_C_out = mul_stall | (xcpt_WB_in != NO_XCPT);
+    flush_WB_out = ~dcache_ready_in | (xcpt_WB_in != NO_XCPT);
   end
 
 

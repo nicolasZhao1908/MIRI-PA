@@ -82,10 +82,14 @@ module core
   logic mul_valid_WB;
   logic flush_C;
 
+  xcpt_e xcpt_C, xcpt_M1, xcpt_M5, xcpt_WB, xcpt_M;
+  logic pred_wrong_D;
+  logic [XLEN-1:0] pc_out_A;
+
   fetch_stage fetch (
       .clk(clk),
       .reset(reset),
-      .xcpt_in(),
+      .xcpt_in(xcpt_WB),
       .stall_in(stall_F),
       .pc_src_in(pc_src_A_F),
       .pc_target_in(pc_delta_A),
@@ -101,10 +105,10 @@ module core
       // Memory
       .mem_resp_in(mem_resp),
 
-      //Branch predictor
+      // Branch predictor
       .branch_pc_in  (pc_out_A),
       .pred_wrong_in (pred_wrong_D),
-      .pred_taken_out(pred_taken_F)   // out
+      .pred_taken_out(pred_taken_F)
       // 
   );
 
@@ -150,9 +154,6 @@ module core
       .pred_taken_out(pred_taken_D)
   );
 
-  xcpt_e xcpt_M;
-  logic pred_wrong_D;
-  logic [XLEN-1:0] pc_out_A;
 
 
   alu_stage alu (
@@ -209,11 +210,13 @@ module core
       .pc_out(pc_out_A)
   );
 
+
   cache_stage cache (
       .clk(clk),
       .reset(reset),
       .stall_in(stall_C),
       .flush_in(flush_C),
+      .xcpt_in(xcpt_A),
       .mem_resp_in(mem_resp),
       .mem_req_out(arb_req_dcache),
       .arbiter_grant_in(dgrant),
@@ -226,6 +229,7 @@ module core
       .read_data_out(read_data_C),
       .pc_plus4_out(pc_plus4_C),
       .rd_out(rd_C),
+      .xcpt_out(xcpt_C),
 
       .alu_valid_in  (alu_valid_A),
       .alu_valid_out (alu_valid_C),
@@ -265,11 +269,12 @@ module core
       .rs1_in(rs1_D),
       .rs2_in(rs2_D),
 
-      .rs1_out (rs1_A),
-      .rs2_out (rs2_A),
-      .xcpt_out()
-  );
+      .rs1_out(rs1_A),
+      .rs2_out(rs2_A),
 
+      .xcpt_in (xcpt_D),
+      .xcpt_out(xcpt_M1)
+  );
 
   mul_regs mul_delayed (
       .clk(clk),
@@ -280,30 +285,37 @@ module core
       .rd_in(rd_M1),
       .rd_out(rd_M5),
       .valid_in(valid_M1),
-      .valid_out(valid_M5)
+      .valid_out(valid_M5),
+      .xcpt_in(xcpt_M1),
+      .xcpt_out(xcpt_M5)
   );
 
   wb_stage write_back (
       .clk(clk),
       .reset(reset),
       .flush_in(flush_WB),
+
       .alu_res_in(alu_res_C),
       .alu_valid_in(alu_valid_C),
       .alu_rd_in(rd_C),
       .alu_rd_out(alu_rd_WB),
+      .alu_xcpt_in(xcpt_C),
+
       .mul_res_in(result_M5),
       .mul_valid_in(valid_M5),
       .mul_rd_in(rd_M5),
       .mul_rd_out(mul_rd_WB),
       .mul_valid_out(mul_valid_WB),
+      .mul_xcpt_in(xcpt_M5),
+
+      .xcpt_out(xcpt_WB),
       .read_data_in(read_data_C),
       .pc_plus4_in(pc_plus4_C),
       .result_out(result_WB),
-
       .result_src_in(result_src_C),
-      .reg_write_in (reg_write_C),
+      .reg_write_in(reg_write_C),
       .reg_write_out(reg_write_WB),
-      .rd_write_out (write_rd_WB)
+      .rd_write_out(write_rd_WB)
   );
 
 
@@ -315,6 +327,7 @@ module core
       .alu_rd_WB_in(alu_rd_WB),
       .mul_rd_WB_in(mul_rd_WB),
       .mul_valid_WB_in(mul_valid_WB),
+
       .reg_write_C_in(reg_write_C),
       .reg_write_WB_in(reg_write_WB),
       .fwd_src1_out(fwd_src1_A),
@@ -338,7 +351,8 @@ module core
       .flush_A_out(flush_A),
       .flush_C_out(flush_C),
       .flush_WB_out(flush_WB),
-      .pred_wrong_D_in(pred_wrong_D)
+      .pred_wrong_D_in(pred_wrong_D),
+      .xcpt_WB_in(xcpt_WB)
   );
 
   arbiter arb (

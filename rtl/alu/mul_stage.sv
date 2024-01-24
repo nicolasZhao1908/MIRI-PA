@@ -8,6 +8,9 @@ module mul_stage
     input logic stall_in,
     input logic flush_in,
 
+    input  xcpt_e xcpt_in,
+    output xcpt_e xcpt_out,
+
     input  logic valid_in,
     output logic valid_out,
 
@@ -27,7 +30,6 @@ module mul_stage
     input  logic [REGMSB-1:0] rd_in,
     output logic [REGMSB-1:0] rd_out,
 
-    output xcpt_e xcpt_out,
     output logic [XLEN-1:0] result_out
 );
   logic [XLEN-1:0] src1;
@@ -60,7 +62,6 @@ module mul_stage
       end
     endcase
     result_out = src1 * src2;
-    xcpt_out   = NO_XCPT;
   end
 
   // Pipeline registers D -> M
@@ -72,6 +73,7 @@ module mul_stage
       rs2_data_w <= 0;
       rd_out <= 0;
       valid_out <= 0;
+      xcpt_out <= NO_XCPT;
     end else if (~stall_in) begin
       rs1_out <= rs1_in;
       rs2_out <= rs2_in;
@@ -79,6 +81,7 @@ module mul_stage
       rs2_data_w <= rs2_data_in;
       rd_out <= rd_in;
       valid_out <= valid_in;
+      xcpt_out <= xcpt_in;
     end
   end
 endmodule

@@ -7,7 +7,7 @@ module fetch_stage
     input logic reset,
     input logic stall_in,
     input pc_src_e pc_src_in,
-    input logic xcpt_in,
+    input xcpt_e xcpt_in,
     input logic [ADDR_LEN-1:0] pc_target_in,
     output logic [ILEN-1:0] instr_out,
     output logic [XLEN-1:0] pc_out,
@@ -48,7 +48,7 @@ module fetch_stage
     bp_n = bp_q;
     pred_taken_out = 0;
 
-    if (xcpt_in) begin
+    if (xcpt_in != NO_XCPT) begin
       pc_next = PC_XCPT;
     end else if (pc_src_in == FROM_A) begin
       pc_next = pc_target_in;
